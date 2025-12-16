@@ -6,7 +6,7 @@ function Login(){
     const nav=useNavigate();
     const [form,setform]=useState({
         email:"",
-        password:""
+        password:"",
     });
 
 }

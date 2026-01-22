@@ -6,6 +6,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import { sppic1 } from "../../assets";
+import Authlay from "../../layouts/Authlay";
 
 
 function Loginn() {
@@ -18,6 +19,13 @@ function Loginn() {
         role: ""
     });
 
+    const adminacc={
+        email:"admin@gmail.com",
+        password:"admin123",
+        role:"admin"
+    };
+    localStorage.setItem("adminacc",JSON.stringify(adminacc));
+
     const setchange = (e) => {
         setform({ ...form, [e.target.name]: e.target.value });
     };
@@ -27,9 +35,18 @@ function Loginn() {
 
         const saveduser = JSON.parse(localStorage.getItem("registereduser"));
 
+        const admin=JSON.parse(localStorage.getItem("adminacc"));
+
+        if(form.email === admin.email && form.password === admin.password && form.role === "admin"){
+            localStorage.setItem("loggeduser",JSON.stringify(admin));
+            nav("/admin");
+            return;
+        }
+
         if (!saveduser) {
             alert("no user found");
             return;
+            
         }
 
         console.log(form);
@@ -46,14 +63,13 @@ function Loginn() {
             if (form.role === "owner") nav("/owner");
             if (form.role === "admin") nav("/admin");
         } else {
-            alert("try agian");
+            alert("try again");
         }
     };
 
     return (
-        <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-indigo-950">
-
-            <div className="flex items-center justify-center">
+         <Authlay image={sppic1}>
+       
                 <form onSubmit={handle}
                     className="w-[380px] bg-white/95 p-8 rounded-2xl shadow-2xl">
 
@@ -116,28 +132,7 @@ function Loginn() {
                         </span>
                     </p>
                 </form>
-            </div>
-
-
-            <div
-                className="hidden md:block bg-cover bg-center relative"
-                style={{ backgroundImage: `url(${sppic1})` }}
-            >
-                <div className="absolute inset-0 bg-gradient-to-br from-black/60 to-indigo-900/60"></div>
-
-                <div className="relative z-10 flex items-center h-full px-12">
-                    <div className="text-white max-w-md">
-                        <h1 className="text-5xl font-extrabold leading-tight mb-4">
-                            Book. Play. <span className="text-indigo-400">Repeat.</span>
-                        </h1>
-
-                        <p className="text-gray-300">
-                            Discover nearby sports venues and book instantly with Bookify.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+           </Authlay>
 
     );
 

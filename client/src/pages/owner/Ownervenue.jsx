@@ -8,7 +8,7 @@ function Ownervenue() {
     const [venue, setvenue] = useState([]);
 
     useEffect(() => {
-        const ownerv = JSON.parse(localStorage.getItem("ownerv")) || [];
+        const ownerv = JSON.parse(localStorage.getItem("ovenue")) || [];
         setvenue(ownerv);
     }, []);
 
@@ -17,6 +17,9 @@ function Ownervenue() {
             <h1 className="text-2xl font-bold text-gray-800 mb-6">
                 my venues
             </h1>
+            <h2 className="min-h-screen ng-gray-100 p-8">
+        list of venues
+            </h2>
             {venue.length === 0 ?
                 (
                     <p className="text-gray-500">No venues added yet.</p>
@@ -59,9 +62,7 @@ function Ownervenue() {
                     </div>
 
                 )}
-                <button className="text-2xl bg-blue text-white px-3 rounded ">
-                nav("/owner");
-                </button>
+                
         </div>
     );
 

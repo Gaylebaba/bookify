@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
 
-const connectdb = async () =>{
-    try{
-   await mongoose.connect("mongodb://127.0.0.1:27017/venue_booking");
-   console.log("mongodb conncted");
-    }catch(err){
-        console.log(err);
-    }
+const connectdb = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+
+    console.log(`MongoDB Atlas Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error("Database connection failed:", error.message);
+    process.exit(1);
+  }
 };
 
 export default connectdb;

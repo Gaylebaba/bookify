@@ -1,0 +1,7 @@
+[33me62b893[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/develop[m[33m)[m HEAD@{0}: commit: new changes
+[33me13ea9e[m HEAD@{1}: commit: today
+[33m2799322[m HEAD@{2}: commit: todays
+[33m016feec[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{3}: checkout: moving from main to develop
+[33m016feec[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{4}: commit: set login
+[33mcdd0b5f[m HEAD@{5}: Branch: renamed refs/heads/master to refs/heads/main
+[33mcdd0b5f[m HEAD@{7}: commit (initial): first commit

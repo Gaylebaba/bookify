@@ -5,7 +5,10 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
-import { sppic1 } from "../../assets";
+
+import sppic2 from "../../assets/images/sppic2.jpeg";
+
+
 import Authlay from "../../layouts/Authlay";
 
 
@@ -68,7 +71,7 @@ function Loginn() {
     };
 
     return (
-         <Authlay image={sppic1}>
+         <Authlay image={sppic2}>
        
                 <form onSubmit={handle}
                     className="w-[380px] bg-white/95 p-8 rounded-2xl shadow-2xl">

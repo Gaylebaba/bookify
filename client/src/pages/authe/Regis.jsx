@@ -10,12 +10,14 @@ import sppic2 from "../../assets/images/sppic2.jpeg";
 import Authlay from "../../layouts/Authlay";
 
 function Regis() {
+
   const nav = useNavigate();
 
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
     role: ""
   });
 
@@ -26,8 +28,20 @@ function Regis() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!form.name || !form.email || !form.password || !form.role) {
+    if (
+      !form.name ||
+      !form.email ||
+      !form.password ||
+      !form.confirmPassword ||
+      !form.role
+    ) {
       alert("All fields are required");
+      return;
+    }
+
+    // 🔥 Password match validation
+    if (form.password !== form.confirmPassword) {
+      alert("Passwords do not match");
       return;
     }
 
@@ -40,7 +54,16 @@ function Regis() {
       return;
     }
 
-    users.push(form);
+    const newUser = {
+      id: Date.now(),
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      role: form.role,
+      blocked: false
+    };
+
+    users.push(newUser);
 
     localStorage.setItem("users", JSON.stringify(users));
 
@@ -54,6 +77,7 @@ function Regis() {
         onSubmit={handleSubmit}
         className="w-[380px] bg-white/95 p-8 rounded-2xl shadow-2xl"
       >
+
         <div className="text-center mb-6">
           <h1 className="text-3xl font-extrabold tracking-wide">
             Bookify
@@ -63,31 +87,40 @@ function Regis() {
           </p>
         </div>
 
-        name:
         <input
           type="text"
           name="name"
+          placeholder="Full Name"
           onChange={setchange}
-          className="w-full border border-gray-300 p-2.5 rounded-lg"
+          className="w-full border border-gray-300 p-2.5 rounded-lg mb-4"
         />
 
-        email:
         <input
           type="email"
           name="email"
+          placeholder="Email"
           onChange={setchange}
-          className="w-full border border-gray-300 p-2.5 rounded-lg"
+          className="w-full border border-gray-300 p-2.5 rounded-lg mb-4"
         />
 
-        password
         <input
           type="password"
           name="password"
+          placeholder="Password"
           onChange={setchange}
-          className="w-full border border-gray-300 p-2.5 rounded-lg"
+          className="w-full border border-gray-300 p-2.5 rounded-lg mb-4"
         />
 
-        <FormControl>
+        {/* 🔥 Confirm Password */}
+        <input
+          type="password"
+          name="confirmPassword"
+          placeholder="Confirm Password"
+          onChange={setchange}
+          className="w-full border border-gray-300 p-2.5 rounded-lg mb-4"
+        />
+
+        <FormControl className="mb-6">
           <FormLabel sx={{ fontSize: 13, color: "#4B5563" }}>
             Register as
           </FormLabel>
@@ -117,15 +150,16 @@ function Regis() {
           Register
         </button>
 
-        <p className="text-sm text-center text-gray-500">
-          already have account?
+        <p className="text-sm text-center text-gray-500 mt-4">
+          Already have account?
           <span
             onClick={() => nav("/login")}
-            className="text-indigo-600 cursor-pointer hover:underline"
+            className="text-indigo-600 cursor-pointer hover:underline ml-1"
           >
-            login
+            Login
           </span>
         </p>
+
       </form>
     </Authlay>
   );

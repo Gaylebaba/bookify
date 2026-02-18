@@ -1,74 +1,92 @@
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-function Adminvenue(){
+function Adminvenue() {
 
-    const[venues,setvenues]=useState([]);
+  const nav = useNavigate();
+  const [venues, setvenues] = useState([]);
 
-    useEffect(()=>{
-        const storedvenues=JSON.parse(localStorage.getItem("ovenue")) || [];
-        setvenues(storedvenues);
-        const admin=JSON.parse(localStorage.getItem("loggeduser"));
-        if(!admin || admin.role !=="admin"){
-            window.location.href="/login";
-            return;
-        }
-    },[]);
+  useEffect(() => {
 
-    const approvedvenue=(id)=>{
-        const updated=venues.map(v=>
-            v.id === id ? {...v, approved: true} :v
-        );  
+    const admin = JSON.parse(localStorage.getItem("loggeduser"));
 
-        localStorage.setItem("ovenue",JSON.stringify(updated));
-        setvenues(updated);
-        alert("venue approved succesfully");
-    };
+    if (!admin || admin.role !== "admin") {
+      nav("/login");
+      return;
+    }
 
-    return(
-        <div className="min-h-screen bg-gray-100 p-8">
-            <h1 className="text-3xl font-bold mb-6">
-            venue approved panel
-            </h1>
+    const storedvenues = JSON.parse(localStorage.getItem("ovenue")) || [];
+    setvenues(storedvenues);
 
-            {venues.length === 0 ? (
-                <p className="text-gray-500">
-                    no venues found
-                </p>
-            ):(
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {venues.map(v=>(
-                        <div key={v.id}
-                        className="bg-white p-6 rounded shadow">
-                   
-                    <h2 className="text-lg bg-white font-semibold">
-                    {v.name}
-                    </h2>
+  }, [nav]);
 
-                    <p className="text-sm text-gray-600">
-                    sports:{v.sports}
-                    </p>
+  const approvedvenue = (id) => {
 
-                    <p>
-                        time : {v.opentime}-{v.closetime}
-                    </p>
-                    <p className={`mt-2 font-semibold ${v.approved ? "text-green-600": "text-yellow-600"}`} >
-                    status:{v.approved ? "approved" :"pending"}
-                    </p>
-                    {!v.approved && (
-                        <button onClick={()=>approvedvenue(v.id)}
-                        className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                            approved venue
-                        </button>
-                    )}
-                </div>
-                 ))}
-                 
+    const updated = venues.map(v =>
+      v.id === id ? { ...v, approved: true } : v
+    );
+
+    localStorage.setItem("ovenue", JSON.stringify(updated));
+    setvenues(updated);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#3b0764] p-10 text-white">
+
+      <h1 className="text-4xl font-bold mb-12">
+        Venue Approval Panel
+      </h1>
+
+      {venues.length === 0 ? (
+        <p className="text-purple-200">No venues found</p>
+      ) : (
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+          {venues.map(v => (
+
+            <div
+              key={v.id}
+              className="bg-[#4c1d95] p-6 rounded-xl shadow-lg"
+            >
+
+              <h2 className="text-xl font-semibold mb-2">
+                {v.name}
+              </h2>
+
+              <p className="text-sm text-purple-200">
+                Sports: {v.sports}
+              </p>
+
+              <p className="text-sm text-purple-200">
+                Time: {v.opentime} - {v.closetime}
+              </p>
+
+              <p className={`mt-3 font-semibold ${
+                v.approved ? "text-green-400" : "text-yellow-400"
+              }`}>
+                Status: {v.approved ? "Approved" : "Pending"}
+              </p>
+
+              {!v.approved && (
+                <button
+                  onClick={() => approvedvenue(v.id)}
+                  className="mt-4 bg-green-600 px-4 py-2 rounded-lg font-semibold hover:bg-green-500 transition shadow-md"
+                >
+                  Approve Venue
+                </button>
+              )}
+
             </div>
-            )}
+
+          ))}
 
         </div>
-    );
+
+      )}
+
+    </div>
+  );
 }
 
 export default Adminvenue;

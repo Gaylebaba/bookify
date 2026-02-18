@@ -78,8 +78,8 @@ function Ownerhome() {
           <Statcard title="Pending Venues" value={stats.pendingvenue} />
         </div>
 
-        {/* Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        {/* Actions (Cleaned) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           <Actioncard
             title="Add Venue"
             desc="Register a new sports venue"
@@ -88,13 +88,7 @@ function Ownerhome() {
 
           <Actioncard
             title="Manage Venues"
-            desc="Edit venue details and status"
-            onClick={() => nav("/owner/venues")}
-          />
-
-          <Actioncard
-            title="Set Slots"
-            desc="Manage slots and availability"
+            desc="Edit venue details and manage slots"
             onClick={() => nav("/owner/venues")}
           />
         </div>

@@ -16,7 +16,7 @@ import {
 } from "../controllers/bookingController.js";
 import { cancelBooking } from "../controllers/bookingController.js";
 import { getOwnerAnalytics } from "../controllers/bookingController.js";
-
+import { processPayment } from "../controllers/paymentController.js";
 
 
 const router = express.Router();
@@ -84,7 +84,12 @@ router.get(
   authorize("owner"),
   getOwnerAnalytics
 );
-
+router.post(
+  "/payment/process",
+  protect,
+  authorize("enduser"),
+  processPayment
+);
 
 
 export default router;

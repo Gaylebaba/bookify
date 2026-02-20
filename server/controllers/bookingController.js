@@ -1,0 +1,190 @@
+import Booking from "../models/booking.js";
+import Venue from "../models/venue.js";
+
+/* ================= CREATE BOOKING ================= */
+
+export const createBooking = async (req, res) => {
+  try {
+    const { venueId, date, startTime, endTime } = req.body;
+
+    if (!venueId || !date || !startTime || !endTime) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
+
+    const venue = await Venue.findById(venueId);
+
+    if (!venue || !venue.approved) {
+      return res.status(404).json({
+        message: "Venue not available",
+      });
+    }
+
+    // 🔒 CHECK SLOT CONFLICT
+    const existingBooking = await Booking.findOne({
+      venue: venueId,
+      date,
+      startTime,
+      endTime,
+      status: "confirmed",
+    });
+
+    if (existingBooking) {
+      return res.status(400).json({
+        message: "This slot is already booked",
+      });
+    }
+
+    const amount = venue.price;
+    const commission = amount * 0.03;
+
+    const booking = await Booking.create({
+      user: req.user._id,
+      venue: venueId,
+      date,
+      startTime,
+      endTime,
+      amount,
+      commission,
+    });
+
+    res.status(201).json({
+      message: "Booking successful",
+      booking,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+
+
+/* ================= USER BOOKINGS ================= */
+
+export const getUserBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({ user: req.user._id })
+      .populate("venue", "name sports");
+
+    res.status(200).json(bookings);
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+
+/* ================= ADMIN BOOKINGS ================= */
+
+export const getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .populate("user", "name email")
+      .populate("venue", "name");
+
+    res.status(200).json(bookings);
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+/* ================= CANCEL BOOKING ================= */
+
+export const cancelBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({
+        message: "Booking not found",
+      });
+    }
+
+    // Only booking owner can cancel
+    if (booking.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Not authorized to cancel this booking",
+      });
+    }
+
+    if (booking.status === "cancelled") {
+      return res.status(400).json({
+        message: "Booking already cancelled",
+      });
+    }
+
+    booking.status = "cancelled";
+    await booking.save();
+
+    res.status(200).json({
+      message: "Booking cancelled successfully",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+/* ================= OWNER ANALYTICS ================= */
+
+export const getOwnerAnalytics = async (req, res) => {
+  try {
+    // Get all venues owned by this owner
+    const venues = await Venue.find({ owner: req.user._id });
+
+    const venueIds = venues.map(v => v._id);
+
+    // Get bookings for those venues
+    const bookings = await Booking.find({
+      venue: { $in: venueIds },
+    });
+
+    const totalBookings = bookings.length;
+
+    const confirmedBookings = bookings.filter(
+      b => b.status === "confirmed"
+    );
+
+    const cancelledBookings = bookings.filter(
+      b => b.status === "cancelled"
+    );
+
+    const totalRevenue = confirmedBookings.reduce(
+      (sum, b) => sum + b.amount,
+      0
+    );
+
+    const totalCommission = confirmedBookings.reduce(
+      (sum, b) => sum + b.commission,
+      0
+    );
+
+    const netRevenue = totalRevenue - totalCommission;
+
+    res.status(200).json({
+      totalBookings,
+      confirmed: confirmedBookings.length,
+      cancelled: cancelledBookings.length,
+      totalRevenue,
+      totalCommission,
+      netRevenue,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+

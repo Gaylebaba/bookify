@@ -94,20 +94,20 @@ function Ownerhome() {
         </div>
 
         {/* Quick Panel */}
-        <div className="bg-white/90 backdrop-blur-md text-gray-800 p-6 rounded-xl shadow max-w-xl">
+        {/* <div className="bg-white/90 backdrop-blur-md text-gray-800 p-6 rounded-xl shadow max-w-xl">
           <p className="mb-4">
             Role: <span className="font-semibold">Venue Owner</span>
-          </p>
+          </p> */}
 
-          <button
+          {/* <button
             className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
             onClick={() => nav("/owner/addv")}
           >
             Add Venue
-          </button>
+          </button> */}
         </div>
 
-      </div>
+      {/* </div> */}
     </div>
   );
 }

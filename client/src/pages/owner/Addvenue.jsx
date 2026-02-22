@@ -10,7 +10,8 @@ function Addvenue() {
         name: "",
         sports: "",
         opentime: "",
-        closetime: ""
+        closetime: "",
+        price: ""
     });
 
     const setchange = (e) => {
@@ -20,13 +21,27 @@ function Addvenue() {
     const handle = (e) => {
         e.preventDefault();
 
+        // Basic validation
         if (
             !venue.name ||
             !venue.sports ||
             !venue.opentime ||
-            !venue.closetime
+            !venue.closetime ||
+            !venue.price
         ) {
-            alert("all  fields required bro");
+            alert("All fields are required");
+            return;
+        }
+
+        // Price validation
+        if (Number(venue.price) <= 0) {
+            alert("Price must be greater than 0");
+            return;
+        }
+
+        // Time validation
+        if (venue.closetime <= venue.opentime) {
+            alert("Close time must be after open time");
             return;
         }
 
@@ -34,16 +49,20 @@ function Addvenue() {
 
         const newvenue = {
             id: Date.now(),
-            ...venue,
+            name: venue.name,
+            sports: venue.sports,
+            opentime: venue.opentime,
+            closetime: venue.closetime,
+            price: Number(venue.price),
             approved: false,
         };
 
         localStorage.setItem(
-            "ownerv",
+            "ovenue",
             JSON.stringify([...existingvenue, newvenue])
         );
 
-        alert("venue added succesfully");
+        alert("Venue added successfully");
         nav("/owner/venues");
     };
 
@@ -55,7 +74,7 @@ function Addvenue() {
             {/* Overlay */}
             <div className="absolute inset-0 bg-black/60"></div>
 
-            {/* Form Container */}
+            {/* Form */}
             <form
                 onSubmit={handle}
                 className="relative z-10 bg-white/90 backdrop-blur-md w-full max-w-md p-8 rounded-xl shadow-2xl"
@@ -71,6 +90,7 @@ function Addvenue() {
                 <input
                     type="text"
                     name="name"
+                    value={venue.name}
                     onChange={setchange}
                     className="w-full border border-gray-300 p-2.5 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
@@ -82,6 +102,19 @@ function Addvenue() {
                 <input
                     type="text"
                     name="sports"
+                    value={venue.sports}
+                    onChange={setchange}
+                    className="w-full border border-gray-300 p-2.5 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+
+                {/* Price Per Hour */}
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Price Per Hour (₹)
+                </label>
+                <input
+                    type="number"
+                    name="price"
+                    value={venue.price}
                     onChange={setchange}
                     className="w-full border border-gray-300 p-2.5 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
@@ -95,6 +128,7 @@ function Addvenue() {
                         <input
                             type="time"
                             name="opentime"
+                            value={venue.opentime}
                             onChange={setchange}
                             className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
@@ -107,13 +141,14 @@ function Addvenue() {
                         <input
                             type="time"
                             name="closetime"
+                            value={venue.closetime}
                             onChange={setchange}
                             className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                     </div>
                 </div>
 
-                {/* Button */}
+                {/* Submit Button */}
                 <button
                     type="submit"
                     className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-semibold hover:bg-indigo-700 transition"

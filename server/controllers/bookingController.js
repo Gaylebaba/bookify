@@ -2,7 +2,6 @@ import Booking from "../models/booking.js";
 import Venue from "../models/venue.js";
 
 /* ================= CREATE BOOKING ================= */
-
 export const createBooking = async (req, res) => {
   try {
     const { venueId, date, startTime, endTime } = req.body;
@@ -21,14 +20,35 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    // 🔒 CHECK SLOT CONFLICT
-    const existingBooking = await Booking.findOne({
-      venue: venueId,
-      date,
-      startTime,
-      endTime,
-      status: "confirmed",
+    // 🔒 Check exact slot conflict (basic version)
+    // 🔒 CHECK TIME OVERLAP
+const existingBookings = await Booking.find({
+  venue: venueId,
+  date,
+  status: "confirmed",
+});
+
+const toMinutes = (time) => {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
+const newStart = toMinutes(startTime);
+const newEnd = toMinutes(endTime);
+
+for (let booking of existingBookings) {
+  const existingStart = toMinutes(booking.startTime);
+  const existingEnd = toMinutes(booking.endTime);
+
+  const overlap =
+    newStart < existingEnd && newEnd > existingStart;
+
+  if (overlap) {
+    return res.status(400).json({
+      message: "This time slot is already booked",
     });
+  }
+}
 
     if (existingBooking) {
       return res.status(400).json({
@@ -37,7 +57,6 @@ export const createBooking = async (req, res) => {
     }
 
     const amount = venue.price;
-    const commission = amount * 0.03;
 
     const booking = await Booking.create({
       user: req.user._id,
@@ -46,11 +65,12 @@ export const createBooking = async (req, res) => {
       startTime,
       endTime,
       amount,
-      commission,
+      commission: 0,
+      status: "pending",
     });
 
     res.status(201).json({
-      message: "Booking successful",
+      message: "Booking created successfully. Proceed to payment.",
       booking,
     });
 

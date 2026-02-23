@@ -4,41 +4,86 @@ import { useEffect, useState } from "react";
 function Adminhome() {
 
   const nav = useNavigate();
-  const [stats, setstats] = useState({
+
+  const [stats, setStats] = useState({
     user: 0,
     venues: 0,
     pendingvenue: 0,
     totalcommission: 0,
   });
 
-  useEffect(() => {
-    const admin = JSON.parse(localStorage.getItem("loggeduser"));
+  const [loading, setLoading] = useState(true);
 
-    if (!admin || admin.role !== "admin") {
+  useEffect(() => {
+
+    const token = localStorage.getItem("token");
+    const logged = JSON.parse(localStorage.getItem("loggeduser"));
+
+    if (!token || !logged || logged.role !== "admin") {
       nav("/login");
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const venues = JSON.parse(localStorage.getItem("ovenue")) || [];
-    const bookings = JSON.parse(localStorage.getItem("book")) || [];
+    const fetchDashboard = async () => {
+      try {
 
-    const pendingvenue = venues.filter(v => !v.approved).length;
+        // USERS
+        const usersRes = await fetch(
+          "http://localhost:5000/api/auth/admin/users",
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
 
-    const totalcommission = bookings.reduce(
-      (sum, b) => sum + (b.commission || 0), 0
-    );
+        const usersData = await usersRes.json();
 
-    setstats({
-      user: users.length,
-      venues: venues.length,
-      pendingvenue,
-      totalcommission,
-    });
+        // VENUES
+        const venueRes = await fetch(
+          "http://localhost:5000/api/auth/venue/all",
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        const venueData = await venueRes.json();
+
+        // BOOKINGS
+        const bookingRes = await fetch(
+          "http://localhost:5000/api/auth/admin/bookings",
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        const bookingData = await bookingRes.json();
+
+        const pendingvenue = venueData.filter(v => !v.approved).length;
+
+        const totalcommission = bookingData.reduce(
+          (sum, b) => sum + (b.commission || 0),
+          0
+        );
+
+        setStats({
+          user: usersData.length,
+          venues: venueData.length,
+          pendingvenue,
+          totalcommission,
+        });
+
+      } catch (error) {
+        console.error(error);
+      }
+
+      setLoading(false);
+    };
+
+    fetchDashboard();
 
   }, [nav]);
 
   const logout = () => {
+    localStorage.removeItem("token");
     localStorage.removeItem("loggeduser");
     nav("/login");
   };
@@ -46,7 +91,6 @@ function Adminhome() {
   return (
     <div className="min-h-screen bg-[#3b0764] p-10 text-white">
 
-      {/* Header */}
       <div className="flex justify-between items-center mb-14">
         <h1 className="text-4xl font-bold">
           Admin Dashboard
@@ -60,48 +104,47 @@ function Adminhome() {
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
-        <StatCard title="Total Users" value={stats.user} />
-        <StatCard title="Total Venues" value={stats.venues} />
-        <StatCard title="Pending Venues" value={stats.pendingvenue} />
-        <StatCard title="Total Commission" value={`₹ ${stats.totalcommission}`} />
-      </div>
+      {loading ? (
+        <p>Loading dashboard...</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
+            <StatCard title="Total Users" value={stats.user} />
+            <StatCard title="Total Venues" value={stats.venues} />
+            <StatCard title="Pending Venues" value={stats.pendingvenue} />
+            <StatCard title="Total Commission" value={`₹ ${stats.totalcommission}`} />
+          </div>
 
-      {/* Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-
-        <ActionCard
-          title="Manage Users"
-          desc="View, block or unblock registered users"
-          onClick={() => nav("/admin/users")}
-        />
-
-        <ActionCard
-          title="Manage Venues"
-          desc="Approve or reject venue registrations"
-          onClick={() => nav("/admin/venues")}
-        />
-
-        <ActionCard
-          title="Commission Analytics"
-          desc="Track system commission and reports"
-          onClick={() => nav("/admin/commission")}
-        />
-
-        <ActionCard
-          title="Booking Management"
-          desc="Monitor all booking activity"
-          onClick={() => nav("/admin/bookmanage")}
-        />
-
-      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <ActionCard
+              title="Manage Users"
+              desc="View, block or unblock registered users"
+              onClick={() => nav("/admin/users")}
+            />
+            <ActionCard
+              title="Manage Venues"
+              desc="Approve or reject venue registrations"
+              onClick={() => nav("/admin/venues")}
+            />
+            <ActionCard
+              title="Commission Analytics"
+              desc="Track system commission and reports"
+              onClick={() => nav("/admin/commission")}
+            />
+            <ActionCard
+              title="Booking Management"
+              desc="Monitor all booking activity"
+              onClick={() => nav("/admin/bookmanage")}
+            />
+          </div>
+        </>
+      )}
 
     </div>
   );
 }
 
-/* ----- STAT CARD ----- */
+/* STAT CARD */
 
 function StatCard({ title, value }) {
   return (
@@ -114,29 +157,25 @@ function StatCard({ title, value }) {
   );
 }
 
-/* ----- ACTION CARD ----- */
+/* ACTION CARD */
 
 function ActionCard({ title, desc, onClick }) {
   return (
     <div className="bg-[#4c1d95] p-6 rounded-xl shadow-lg hover:shadow-xl transition flex flex-col justify-between h-full">
-
       <div>
         <h3 className="text-xl font-semibold mb-3">
           {title}
         </h3>
-
         <p className="text-sm text-purple-200 mb-6">
           {desc}
         </p>
       </div>
-
       <button
         onClick={onClick}
         className="bg-purple-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-purple-500 transition shadow-md w-fit"
       >
         Open
       </button>
-
     </div>
   );
 }

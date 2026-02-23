@@ -1,95 +1,100 @@
 import express from "express";
 import { registerUser, loginUser } from "../controllers/authController.js";
+import { getAllUsers, toggleBlockUser } from "../controllers/userController.js";
+
 import {
   addVenue,
   getOwnerVenues,
   getAllVenues,
+  getSingleVenue,
   approveVenue,
-  getApprovedVenues,
-  getVenueById
+  updateVenue
 } from "../controllers/venueController.js";
-import { protect, authorize } from "../middleware/authMiddleware.js";
+
 import {
   createBooking,
   getUserBookings,
-  getAllBookings
+  getAllBookings,
+  cancelBooking,
+  getOwnerAnalytics,
+  blockSlot
 } from "../controllers/bookingController.js";
-import { cancelBooking } from "../controllers/bookingController.js";
-import { getOwnerAnalytics } from "../controllers/bookingController.js";
-import { processPayment } from "../controllers/paymentController.js";
 
+import { processPayment } from "../controllers/paymentController.js";
+import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-/* =====================================================
-   AUTH ROUTES
-===================================================== */
+/* ================= AUTH ================= */
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 
+/* ================= VENUES ================= */
 
-/* =====================================================
-   OWNER ROUTES
-===================================================== */
+// Owner add venue
+router.post("/venue", protect, authorize("owner"), addVenue);
 
-// Add new venue
-router.post("/venue/add", protect, authorize("owner"), addVenue);
+// Owner get his venues
+router.get("/owner/venues", protect, authorize("owner"), getOwnerVenues);
 
-// Get only owner’s venues
-router.get("/venue/my", protect, authorize("owner"), getOwnerVenues);
+// Get all approved venues (user side)
+router.get("/venues", getAllVenues);
 
+// Get single venue
+router.get("/venues/:id", getSingleVenue);
 
-/* =====================================================
-   ADMIN ROUTES
-===================================================== */
+// Owner update venue
+router.put("/venues/:id", protect, authorize("owner"), updateVenue);
 
-// Get all venues (admin)
-router.get("/venue/all", protect, authorize("admin"), getAllVenues);
-
-// Approve venue
-router.put("/venue/approve/:id", protect, authorize("admin"), approveVenue);
+// Admin approve venue
+router.put("/admin/approve/:id", protect, authorize("admin"), approveVenue);
 
 
-/* =====================================================
-   USER ROUTES
-===================================================== */
+/* ================= BOOKINGS ================= */
 
-// Get all approved venues (public)
-router.get("/venues", getApprovedVenues);
-
-// Get single venue details
-router.get("/venue/:id", getVenueById);
-
-/* ================= BOOKING ROUTES ================= */
-
-// User creates booking
-router.post("/booking/create", protect, authorize("enduser"), createBooking);
+// User create booking
+router.post("/booking", protect, authorize("user"), createBooking);
 
 // User booking history
-router.get("/booking/my", protect, authorize("enduser"), getUserBookings);
+router.get("/user/bookings", protect, authorize("user"), getUserBookings);
 
 // Admin view all bookings
-router.get("/booking/all", protect, authorize("admin"), getAllBookings);
+router.get("/admin/bookings", protect, authorize("admin"), getAllBookings);
+
+// Cancel booking
+router.put("/booking/cancel/:id", protect, authorize("user"), cancelBooking);
+
+// Owner block slot
+router.post("/owner/block-slot", protect, authorize("owner"), blockSlot);
+
+// Owner analytics
+router.get("/owner/analytics", protect, authorize("owner"), getOwnerAnalytics);
+
+
+/* ================= PAYMENT ================= */
+
+router.post("/payment", protect, authorize("user"), processPayment);
+
+router.get(
+  "/admin/users",
+  protect,
+  authorize("admin"),
+  getAllUsers
+);
+
+router.get(
+  "/admin/users",
+  protect,
+  authorize("admin"),
+  getAllUsers
+);
 
 router.put(
-  "/booking/cancel/:id",
+  "/admin/users/:id",
   protect,
-  authorize("enduser"),
-  cancelBooking
+  authorize("admin"),
+  toggleBlockUser
 );
-router.get(
-  "/owner/analytics",
-  protect,
-  authorize("owner"),
-  getOwnerAnalytics
-);
-router.post(
-  "/payment/process",
-  protect,
-  authorize("enduser"),
-  processPayment
-);
-
 
 export default router;

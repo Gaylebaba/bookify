@@ -8,26 +8,46 @@ function Selecttiming() {
 
   const [venue, setVenue] = useState(null);
   const [selected, setSelected] = useState("");
+  const [bookedSlots, setBookedSlots] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔥 Fetch venue details
+  const today = new Date().toISOString().split("T")[0];
+
+  // 🔥 Fetch venue + booked slots
   useEffect(() => {
-    const fetchVenue = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch(
+        // 1️⃣ Fetch venue
+        const venueRes = await fetch(
           `http://localhost:5000/api/auth/venues/${id}`
         );
-        const data = await res.json();
-        setVenue(data);
+        const venueData = await venueRes.json();
+        setVenue(venueData);
+
+        // 2️⃣ Fetch bookings for today
+        const bookingRes = await fetch(
+          `http://localhost:5000/api/auth/venue/${id}/bookings?date=${today}`
+        );
+
+        const bookingData = await bookingRes.json();
+
+        if (bookingRes.ok) {
+          const confirmed = bookingData
+            .filter(b => b.status === "confirmed")
+            .map(b => `${b.startTime} - ${b.endTime}`);
+
+          setBookedSlots(confirmed);
+        }
+
       } catch (error) {
         console.error(error);
       }
     };
 
-    fetchVenue();
+    fetchData();
   }, [id]);
 
-  // 🔥 Generate 1-hour slots dynamically
+  // 🔥 Generate 1-hour slots
   const generateSlots = (start, end) => {
     const slots = [];
 
@@ -89,7 +109,7 @@ function Selecttiming() {
           },
           body: JSON.stringify({
             venueId: id,
-            date: new Date().toISOString().split("T")[0],
+            date: today,
             startTime,
             endTime,
           }),
@@ -131,7 +151,7 @@ function Selecttiming() {
       {/* Content */}
       <div className="relative z-10 w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8">
 
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">
           Select Time Slot
         </h1>
 
@@ -147,19 +167,27 @@ function Selecttiming() {
         )}
 
         <div className="grid grid-cols-1 gap-4 mb-6">
-          {slots.map((slot, index) => (
-            <button
-              key={index}
-              onClick={() => setSelected(slot)}
-              className={`border px-4 py-3 rounded text-left transition ${
-                selected === slot
-                  ? "bg-indigo-600 text-white border-indigo-600"
-                  : "bg-white hover:bg-gray-100"
-              }`}
-            >
-              {slot}
-            </button>
-          ))}
+          {slots.map((slot, index) => {
+            const isBooked = bookedSlots.includes(slot);
+
+            return (
+              <button
+                key={index}
+                disabled={isBooked}
+                onClick={() => !isBooked && setSelected(slot)}
+                className={`border px-4 py-3 rounded text-left transition
+                  ${
+                    isBooked
+                      ? "bg-red-200 text-red-600 cursor-not-allowed"
+                      : selected === slot
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-white hover:bg-gray-100"
+                  }`}
+              >
+                {slot} {isBooked && "(Booked)"}
+              </button>
+            );
+          })}
         </div>
 
         <button

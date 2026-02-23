@@ -1,94 +1,230 @@
-import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import stadium from "../../assets/images/stadium.jpg";
+import { useState, useEffect } from "react";
+import { light } from "../../assets";
 
-function Setslot() {
-  const { id } = useParams();
+function Selecttiming() {
   const nav = useNavigate();
+  const { id } = useParams();
 
-  const [slot, setslot] = useState({
-    date: "",
-    starttime: "",
-    endtime: "",
-  });
+  const [venue, setVenue] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [selectedSlot, setSelectedSlot] = useState("");
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [loading, setLoading] = useState(false);
 
+  // 🔥 Fetch venue details
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem(`slots_${id}`));
-    if (saved) setslot(saved);
+    const fetchVenue = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/auth/venues/${id}`
+        );
+        const data = await res.json();
+        setVenue(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchVenue();
   }, [id]);
 
-  const handlechange = (e) => {
-    setslot({ ...slot, [e.target.name]: e.target.value });
+  // 🔥 Fetch bookings for selected date
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/auth/venue/${id}/bookings?date=${selectedDate}`
+        );
+
+        const data = await res.json();
+
+        if (res.ok) {
+          const takenSlots = data
+            .filter(
+              (b) =>
+                b.status === "confirmed" || b.status === "blocked"
+            )
+            .map((b) => `${b.startTime} - ${b.endTime}`);
+
+          setBookedSlots(takenSlots);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchBookings();
+  }, [id, selectedDate]);
+
+  // 🔥 Generate 1-hour slots dynamically
+  const generateSlots = (start, end) => {
+    const slots = [];
+
+    const toMinutes = (time) => {
+      const [h, m] = time.split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    const toTimeString = (minutes) => {
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    };
+
+    let current = toMinutes(start);
+    const endMinutes = toMinutes(end);
+
+    while (current + 60 <= endMinutes) {
+      slots.push(
+        `${toTimeString(current)} - ${toTimeString(current + 60)}`
+      );
+      current += 60;
+    }
+
+    return slots;
   };
 
-  const saveslot = (e) => {
-    e.preventDefault();
+  const slots =
+    venue && venue.opentime && venue.closetime
+      ? generateSlots(venue.opentime, venue.closetime)
+      : [];
 
-    if (!slot.date || !slot.starttime || !slot.endtime) {
-      alert("All fields are required");
+  // 🔥 Create booking
+  const handleBooking = async () => {
+    if (!selectedSlot) {
+      alert("Please select a slot");
       return;
     }
 
-    localStorage.setItem(`slots_${id}`, JSON.stringify(slot));
-    alert("Slot saved successfully");
-    nav("/owner/venues");
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      nav("/login");
+      return;
+    }
+
+    const [startTime, endTime] = selectedSlot.split(" - ");
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/auth/booking",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            venueId: id,
+            date: selectedDate,
+            startTime,
+            endTime,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message);
+        setLoading(false);
+        return;
+      }
+
+      nav(`/payments/${data.booking._id}`);
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong");
+    }
+
+    setLoading(false);
   };
 
   return (
-    <div
-      className="min-h-screen w-full bg-cover bg-center bg-no-repeat relative flex items-center justify-center"
-      style={{ backgroundImage: `url(${stadium})` }}
-    >
-      <div className="absolute inset-0 bg-black/70"></div>
+    <div className="relative min-h-screen flex items-center justify-center p-6">
+      {/* Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${light})`,
+          filter: "blur(6px)",
+          transform: "scale(1.05)",
+        }}
+      />
+      <div className="absolute inset-0 bg-black/60"></div>
 
-      <form
-        onSubmit={saveslot}
-        className="relative z-10 bg-white/90 backdrop-blur-md p-8 rounded-xl shadow-2xl w-full max-w-md"
-      >
-        <h1 className="text-2xl font-bold mb-6 text-gray-800 text-center">
-          Set Slots (Venue ID: {id})
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8">
+
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">
+          Select Date & Time
         </h1>
 
-        <label className="block text-sm text-gray-700 mb-1">Date</label>
+        {venue && (
+          <div className="mb-4">
+            <p className="text-gray-600">
+              <strong>Venue:</strong> {venue.name}
+            </p>
+            <p className="text-green-600 font-semibold">
+              ₹ {venue.price} / hour
+            </p>
+          </div>
+        )}
+
+        {/* Date Picker */}
+        <label className="block text-sm text-gray-700 mb-1">
+          Select Date
+        </label>
         <input
           type="date"
-          name="date"
-          value={slot.date}
-          onChange={handlechange}
-          className="w-full border p-2.5 rounded-lg mb-4"
-        />
-
-        <label className="block text-sm text-gray-700 mb-1">
-          Start Time
-        </label>
-        <input
-          type="time"
-          name="starttime"
-          value={slot.starttime}
-          onChange={handlechange}
-          className="w-full border p-2.5 rounded-lg mb-4"
-        />
-
-        <label className="block text-sm text-gray-700 mb-1">
-          End Time
-        </label>
-        <input
-          type="time"
-          name="endtime"
-          value={slot.endtime}
-          onChange={handlechange}
+          value={selectedDate}
+          onChange={(e) => {
+            setSelectedDate(e.target.value);
+            setSelectedSlot("");
+          }}
           className="w-full border p-2.5 rounded-lg mb-6"
         />
 
+        {/* Slots */}
+        <div className="grid grid-cols-1 gap-4 mb-6">
+          {slots.map((slot, index) => {
+            const isBooked = bookedSlots.includes(slot);
+
+            return (
+              <button
+                key={index}
+                disabled={isBooked}
+                onClick={() => !isBooked && setSelectedSlot(slot)}
+                className={`border px-4 py-3 rounded text-left transition ${
+                  isBooked
+                    ? "bg-red-200 text-red-600 cursor-not-allowed"
+                    : selectedSlot === slot
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-white hover:bg-gray-100"
+                }`}
+              >
+                {slot} {isBooked && "(Blocked/Booked)"}
+              </button>
+            );
+          })}
+        </div>
+
         <button
-          type="submit"
-          className="w-full bg-indigo-600 text-white py-2.5 rounded-lg hover:bg-indigo-700 transition"
+          onClick={handleBooking}
+          disabled={loading}
+          className="w-full bg-green-600 text-white py-3 rounded font-semibold hover:bg-green-700 transition"
         >
-          Save Slot
+          {loading ? "Processing..." : "Continue to Payment"}
         </button>
-      </form>
+
+      </div>
     </div>
   );
 }
 
-export default Setslot;
+export default Selecttiming;

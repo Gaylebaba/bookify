@@ -4,37 +4,61 @@ import stadium from "../../assets/images/stadium.jpg";
 
 function Ownerhome() {
   const nav = useNavigate();
-  const [owner, setowner] = useState(null);
-  const [stats, setstats] = useState({
+  const [owner, setOwner] = useState(null);
+  const [stats, setStats] = useState({
     totalvenue: 0,
     approvedvenue: 0,
-    pendingvenue: 0
+    pendingvenue: 0,
   });
 
   useEffect(() => {
     const loggeduser = JSON.parse(localStorage.getItem("loggeduser"));
+    const token = localStorage.getItem("token");
 
-    if (!loggeduser) {
+    if (!loggeduser || !token) {
       nav("/login");
       return;
     }
 
-    setowner(loggeduser);
+    setOwner(loggeduser);
 
-    const venue = JSON.parse(localStorage.getItem("ovenue")) || [];
+    const fetchOwnerVenues = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:5000/api/auth/owner/venues",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-    const approved = venue.filter(v => v.approved).length;
-    const pending = venue.filter(v => !v.approved).length;
+        const data = await res.json();
 
-    setstats({
-      totalvenue: venue.length,
-      approvedvenue: approved,
-      pendingvenue: pending
-    });
+        if (!res.ok) {
+          return;
+        }
+
+        const approved = data.filter(v => v.approved).length;
+        const pending = data.filter(v => !v.approved).length;
+
+        setStats({
+          totalvenue: data.length,
+          approvedvenue: approved,
+          pendingvenue: pending,
+        });
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchOwnerVenues();
 
   }, [nav]);
 
   const logout = () => {
+    localStorage.removeItem("token");
     localStorage.removeItem("loggeduser");
     nav("/login");
   };
@@ -46,10 +70,8 @@ function Ownerhome() {
       className="min-h-screen bg-cover bg-center relative"
       style={{ backgroundImage: `url(${stadium})` }}
     >
-      {/* Dark Overlay */}
       <div className="absolute inset-0 bg-black/60"></div>
 
-      {/* Content */}
       <div className="relative z-10 p-8 text-white">
 
         {/* Header */}
@@ -78,8 +100,8 @@ function Ownerhome() {
           <Statcard title="Pending Venues" value={stats.pendingvenue} />
         </div>
 
-        {/* Actions (Cleaned) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        {/* Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Actioncard
             title="Add Venue"
             desc="Register a new sports venue"
@@ -93,21 +115,7 @@ function Ownerhome() {
           />
         </div>
 
-        {/* Quick Panel */}
-        {/* <div className="bg-white/90 backdrop-blur-md text-gray-800 p-6 rounded-xl shadow max-w-xl">
-          <p className="mb-4">
-            Role: <span className="font-semibold">Venue Owner</span>
-          </p> */}
-
-          {/* <button
-            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
-            onClick={() => nav("/owner/addv")}
-          >
-            Add Venue
-          </button> */}
-        </div>
-
-      {/* </div> */}
+      </div>
     </div>
   );
 }

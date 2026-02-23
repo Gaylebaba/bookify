@@ -4,34 +4,63 @@ import { useState, useEffect } from "react";
 function Admincomm() {
 
   const nav = useNavigate();
-  const [book, setbook] = useState([]);
-  const [rate, setrate] = useState(3);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
 
-    const admin = JSON.parse(localStorage.getItem("loggeduser"));
+    const token = localStorage.getItem("token");
+    const logged = JSON.parse(localStorage.getItem("loggeduser"));
 
-    if (!admin || admin.role !== "admin") {
+    if (!token || !logged || logged.role !== "admin") {
       nav("/login");
       return;
     }
 
-    const storebook = JSON.parse(localStorage.getItem("book")) || [];
-    setbook(storebook);
+    const fetchBookings = async () => {
+      try {
 
-    const savedRate = JSON.parse(localStorage.getItem("commissionRate"));
-    if (savedRate) setrate(savedRate);
+        const res = await fetch(
+          "http://localhost:5000/api/auth/booking/all",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert("Failed to fetch bookings");
+          return;
+        }
+
+        setBookings(data);
+
+      } catch (error) {
+        console.error(error);
+      }
+
+      setLoading(false);
+    };
+
+    fetchBookings();
 
   }, [nav]);
 
-  const saveRate = () => {
-    localStorage.setItem("commissionRate", JSON.stringify(rate));
-    alert("Commission rate updated");
-  };
+  // Only confirmed bookings count for revenue
+  const confirmed = bookings.filter(b => b.status === "confirmed");
 
-  const totalAmount = book.reduce((sum, b) => sum + (b.amount || 0), 0);
+  const totalRevenue = confirmed.reduce(
+    (sum, b) => sum + b.amount,
+    0
+  );
 
-  const totalCommission = (totalAmount * rate) / 100;
+  const totalCommission = confirmed.reduce(
+    (sum, b) => sum + b.commission,
+    0
+  );
 
   return (
     <div className="min-h-screen bg-[#3b0764] p-10 text-white">
@@ -40,88 +69,78 @@ function Admincomm() {
         Commission Analytics
       </h1>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-
-        {/* Commission Rate */}
-        <div className="bg-[#4c1d95] p-6 rounded-xl shadow-lg">
-          <p className="text-sm text-purple-200 mb-2">
-            Commission Rate (%)
-          </p>
-
-          <input
-            type="number"
-            value={rate}
-            onChange={(e) => setrate(Number(e.target.value))}
-            className="w-full p-2 rounded text-black mb-4"
-          />
-
-          <button
-            onClick={saveRate}
-            className="bg-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-purple-500 transition"
-          >
-            Update Rate
-          </button>
-        </div>
-
-        {/* Total Bookings */}
-        <div className="bg-[#4c1d95] p-6 rounded-xl shadow-lg">
-          <p className="text-sm text-purple-200">
-            Total Bookings
-          </p>
-          <h2 className="text-3xl font-bold mt-2">
-            {book.length}
-          </h2>
-        </div>
-
-        {/* Total Commission */}
-        <div className="bg-[#4c1d95] p-6 rounded-xl shadow-lg">
-          <p className="text-sm text-purple-200">
-            Total Commission
-          </p>
-          <h2 className="text-3xl font-bold text-green-400 mt-2">
-            ₹ {totalCommission}
-          </h2>
-        </div>
-
-      </div>
-
-      {/* Booking Table */}
-      {book.length === 0 ? (
-        <p className="text-purple-200">No bookings yet</p>
+      {loading ? (
+        <p>Loading data...</p>
       ) : (
-        <div className="bg-[#4c1d95] rounded-xl shadow-lg overflow-x-auto">
-          <table className="w-full text-left">
 
-            <thead className="bg-purple-700 text-sm">
-              <tr>
-                <th className="p-3">Venue</th>
-                <th className="p-3">Amount</th>
-                <th className="p-3">Commission</th>
-                <th className="p-3">Date</th>
-              </tr>
-            </thead>
+        <>
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
 
-            <tbody>
-              {book.map((b) => {
+            <div className="bg-[#4c1d95] p-6 rounded-xl shadow-lg">
+              <p className="text-sm text-purple-200">
+                Total Bookings
+              </p>
+              <h2 className="text-3xl font-bold mt-2">
+                {confirmed.length}
+              </h2>
+            </div>
 
-                const commissionValue = (b.amount * rate) / 100;
+            <div className="bg-[#4c1d95] p-6 rounded-xl shadow-lg">
+              <p className="text-sm text-purple-200">
+                Total Revenue
+              </p>
+              <h2 className="text-3xl font-bold mt-2">
+                ₹ {totalRevenue}
+              </h2>
+            </div>
 
-                return (
-                  <tr key={b.id} className="border-t border-purple-700">
-                    <td className="p-3">{b.venuename}</td>
-                    <td className="p-3">₹ {b.amount}</td>
-                    <td className="p-3 text-green-400">
-                      ₹ {commissionValue}
-                    </td>
-                    <td className="p-3">{b.date}</td>
+            <div className="bg-[#4c1d95] p-6 rounded-xl shadow-lg">
+              <p className="text-sm text-purple-200">
+                Total Commission (3%)
+              </p>
+              <h2 className="text-3xl font-bold text-green-400 mt-2">
+                ₹ {totalCommission}
+              </h2>
+            </div>
+
+          </div>
+
+          {/* Booking Table */}
+          {confirmed.length === 0 ? (
+            <p className="text-purple-200">No confirmed bookings</p>
+          ) : (
+            <div className="bg-[#4c1d95] rounded-xl shadow-lg overflow-x-auto">
+              <table className="w-full text-left">
+
+                <thead className="bg-purple-700 text-sm">
+                  <tr>
+                    <th className="p-3">User</th>
+                    <th className="p-3">Venue</th>
+                    <th className="p-3">Amount</th>
+                    <th className="p-3">Commission</th>
+                    <th className="p-3">Date</th>
                   </tr>
-                );
-              })}
-            </tbody>
+                </thead>
 
-          </table>
-        </div>
+                <tbody>
+                  {confirmed.map((b) => (
+                    <tr key={b._id} className="border-t border-purple-700">
+                      <td className="p-3">{b.user?.name}</td>
+                      <td className="p-3">{b.venue?.name}</td>
+                      <td className="p-3">₹ {b.amount}</td>
+                      <td className="p-3 text-green-400">
+                        ₹ {b.commission}
+                      </td>
+                      <td className="p-3">{b.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+
+              </table>
+            </div>
+          )}
+        </>
       )}
 
     </div>

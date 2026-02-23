@@ -4,29 +4,82 @@ import { useNavigate } from "react-router-dom";
 function Adminuser() {
 
   const nav = useNavigate();
-  const [users, setuser] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const admin = JSON.parse(localStorage.getItem("loggeduser"));
 
-    if (!admin || admin.role !== "admin") {
+    const token = localStorage.getItem("token");
+    const logged = JSON.parse(localStorage.getItem("loggeduser"));
+
+    if (!token || !logged || logged.role !== "admin") {
       nav("/login");
       return;
     }
 
-    const storeduser = JSON.parse(localStorage.getItem("users")) || [];
-    setuser(storeduser);
+    const fetchUsers = async () => {
+      try {
+
+        const res = await fetch(
+          "http://localhost:5000/api/auth/admin/users",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert("Failed to fetch users");
+          return;
+        }
+
+        setUsers(data);
+
+      } catch (error) {
+        console.error(error);
+      }
+
+      setLoading(false);
+    };
+
+    fetchUsers();
 
   }, [nav]);
 
-  const toggle = (id) => {
+  const toggleUser = async (id) => {
 
-    const updated = users.map((u) =>
-      u.id === id ? { ...u, blocked: !u.blocked } : u
-    );
+    const token = localStorage.getItem("token");
 
-    localStorage.setItem("users", JSON.stringify(updated));
-    setuser(updated);
+    try {
+
+      const res = await fetch(
+        `http://localhost:5000/api/auth/admin/users/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message);
+        return;
+      }
+
+      // Update UI instantly
+      setUsers(users.map(u =>
+        u._id === id ? { ...u, blocked: !u.blocked } : u
+      ));
+
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -36,15 +89,18 @@ function Adminuser() {
         User Management
       </h1>
 
-      {users.length === 0 ? (
+      {loading ? (
+        <p>Loading users...</p>
+      ) : users.length === 0 ? (
         <p className="text-purple-200">No users found</p>
       ) : (
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
           {users.map((u) => (
+
             <div
-              key={u.id}
+              key={u._id}
               className="bg-[#4c1d95] p-6 rounded-xl shadow-lg flex justify-between items-center"
             >
 
@@ -68,18 +124,21 @@ function Adminuser() {
                 </p>
               </div>
 
-              <button
-                onClick={() => toggle(u.id)}
-                className={`px-5 py-2 rounded-lg font-semibold shadow-md transition ${
-                  u.blocked
-                    ? "bg-green-600 hover:bg-green-500"
-                    : "bg-red-600 hover:bg-red-500"
-                }`}
-              >
-                {u.blocked ? "Unblock" : "Block"}
-              </button>
+              {u.role !== "admin" && (
+                <button
+                  onClick={() => toggleUser(u._id)}
+                  className={`px-5 py-2 rounded-lg font-semibold shadow-md transition ${
+                    u.blocked
+                      ? "bg-green-600 hover:bg-green-500"
+                      : "bg-red-600 hover:bg-red-500"
+                  }`}
+                >
+                  {u.blocked ? "Unblock" : "Block"}
+                </button>
+              )}
 
             </div>
+
           ))}
 
         </div>

@@ -73,4 +73,79 @@ export const approveVenue = async (req, res) => {
     });
   }
 };
+export const updateVenue = async (req, res) => {
+  try {
+    const venue = await Venue.findById(req.params.id);
 
+    if (!venue) {
+      return res.status(404).json({
+        message: "Venue not found",
+      });
+    }
+
+    if (venue.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
+    }
+
+    venue.name = req.body.name || venue.name;
+    venue.sports = req.body.sports || venue.sports;
+    venue.opentime = req.body.opentime || venue.opentime;
+    venue.closetime = req.body.closetime || venue.closetime;
+    venue.price = req.body.price || venue.price;
+
+    await venue.save();
+
+    res.status(200).json({
+      message: "Venue updated successfully",
+      venue,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+/* ================= GET ALL APPROVED VENUES ================= */
+
+export const getAllVenues = async (req, res) => {
+  try {
+    const venues = await Venue.find({ approved: true });
+
+    res.status(200).json(venues);
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+
+/* ================= GET SINGLE VENUE ================= */
+
+export const getSingleVenue = async (req, res) => {
+  try {
+    const venue = await Venue.findById(req.params.id);
+
+    if (!venue) {
+      return res.status(404).json({
+        message: "Venue not found",
+      });
+    }
+
+    res.status(200).json(venue);
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+export const getAllUsers = async (req, res) => {
+  const users = await User.find().select("-password");
+  res.json(users);
+};

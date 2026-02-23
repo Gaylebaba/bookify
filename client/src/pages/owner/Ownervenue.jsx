@@ -27,7 +27,9 @@ function Ownervenue() {
           }
         );
 
-        if (!res.ok) {
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("loggeduser");
           nav("/login");
           return;
         }
@@ -81,9 +83,8 @@ function Ownervenue() {
                   ₹ {v.price} / hour
                 </p>
 
-                <p className={`text-sm mt-2 font-semibold ${
-                  v.approved ? "text-green-600" : "text-yellow-600"
-                }`}>
+                <p className={`text-sm mt-2 font-semibold ${v.approved ? "text-green-600" : "text-yellow-600"
+                  }`}>
                   Status: {v.approved ? "Approved" : "Pending Approval"}
                 </p>
 

@@ -4,19 +4,48 @@ import { useNavigate } from "react-router-dom";
 function Adminbookmanage() {
 
   const nav = useNavigate();
-  const [bookings, setbookings] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
 
-    const admin = JSON.parse(localStorage.getItem("loggeduser"));
+    const token = localStorage.getItem("token");
+    const logged = JSON.parse(localStorage.getItem("loggeduser"));
 
-    if (!admin || admin.role !== "admin") {
+    if (!token || !logged || logged.role !== "admin") {
       nav("/login");
       return;
     }
 
-    const storedbook = JSON.parse(localStorage.getItem("book")) || [];
-    setbookings(storedbook);
+    const fetchBookings = async () => {
+      try {
+
+        const res = await fetch(
+          "http://localhost:5000/api/auth/booking/all",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert("Failed to fetch bookings");
+          return;
+        }
+
+        setBookings(data);
+
+      } catch (error) {
+        console.error(error);
+      }
+
+      setLoading(false);
+    };
+
+    fetchBookings();
 
   }, [nav]);
 
@@ -27,7 +56,9 @@ function Adminbookmanage() {
         Booking Management
       </h1>
 
-      {bookings.length === 0 ? (
+      {loading ? (
+        <p>Loading bookings...</p>
+      ) : bookings.length === 0 ? (
         <p className="text-purple-200">
           No bookings found
         </p>
@@ -42,6 +73,7 @@ function Adminbookmanage() {
                 <th className="p-4">User</th>
                 <th className="p-4">Venue</th>
                 <th className="p-4">Date</th>
+                <th className="p-4">Time</th>
                 <th className="p-4">Amount</th>
                 <th className="p-4">Commission</th>
                 <th className="p-4">Status</th>
@@ -51,13 +83,28 @@ function Adminbookmanage() {
             <tbody>
               {bookings.map((b) => (
                 <tr
-                  key={b.id}
+                  key={b._id}
                   className="border-t border-purple-700"
                 >
-                  <td className="p-4">{b.username}</td>
-                  <td className="p-4">{b.venuename}</td>
-                  <td className="p-4">{b.date}</td>
-                  <td className="p-4">₹ {b.amount}</td>
+                  <td className="p-4">
+                    {b.user?.name}
+                  </td>
+
+                  <td className="p-4">
+                    {b.venue?.name}
+                  </td>
+
+                  <td className="p-4">
+                    {b.date}
+                  </td>
+
+                  <td className="p-4">
+                    {b.startTime} - {b.endTime}
+                  </td>
+
+                  <td className="p-4">
+                    ₹ {b.amount}
+                  </td>
 
                   <td className="p-4 text-green-400 font-semibold">
                     ₹ {b.commission}
@@ -65,8 +112,10 @@ function Adminbookmanage() {
 
                   <td
                     className={`p-4 font-semibold ${
-                      b.status === "canceled"
+                      b.status === "cancelled"
                         ? "text-red-400"
+                        : b.status === "pending"
+                        ? "text-yellow-400"
                         : "text-green-400"
                     }`}
                   >

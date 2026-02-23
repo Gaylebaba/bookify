@@ -208,3 +208,67 @@ export const getOwnerAnalytics = async (req, res) => {
   }
 };
 
+/* ================= OWNER BLOCK SLOT ================= */
+
+export const blockSlot = async (req, res) => {
+  try {
+    const { venueId, date, startTime, endTime } = req.body;
+
+    if (!venueId || !date || !startTime || !endTime) {
+      return res.status(400).json({
+        message: "All fields required",
+      });
+    }
+
+    const venue = await Venue.findById(venueId);
+
+    if (!venue) {
+      return res.status(404).json({
+        message: "Venue not found",
+      });
+    }
+
+    // 🔒 Ensure owner owns this venue
+    if (venue.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Not authorized",
+      });
+    }
+
+    // 🔒 Check if already booked or blocked
+    const existing = await Booking.findOne({
+      venue: venueId,
+      date,
+      startTime,
+      endTime,
+      status: { $in: ["confirmed", "blocked"] },
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        message: "Slot already booked or blocked",
+      });
+    }
+
+    const booking = await Booking.create({
+      venue: venueId,
+      user: req.user._id,
+      date,
+      startTime,
+      endTime,
+      amount: 0,
+      commission: 0,
+      status: "blocked",
+    });
+
+    res.status(201).json({
+      message: "Slot blocked successfully",
+      booking,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};

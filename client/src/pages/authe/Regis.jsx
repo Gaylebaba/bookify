@@ -21,11 +21,11 @@ function Regis() {
     role: ""
   });
 
-  const setchange = (e) => {
+  const setChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (
@@ -39,36 +39,41 @@ function Regis() {
       return;
     }
 
-    // 🔥 Password match validation
     if (form.password !== form.confirmPassword) {
       alert("Passwords do not match");
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: form.name,
+            email: form.email,
+            password: form.password,
+            role: form.role,
+          }),
+        }
+      );
 
-    const emailExists = users.find(user => user.email === form.email);
+      const data = await res.json();
 
-    if (emailExists) {
-      alert("User already exists");
-      return;
+      if (!res.ok) {
+        alert(data.message);
+        return;
+      }
+
+      alert("Registration successful");
+      nav("/login");
+
+    } catch (error) {
+      alert("Something went wrong");
     }
-
-    const newUser = {
-      id: Date.now(),
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      role: form.role,
-      blocked: false
-    };
-
-    users.push(newUser);
-
-    localStorage.setItem("users", JSON.stringify(users));
-
-    alert("Registration successful");
-    nav("/login");
   };
 
   return (
@@ -91,7 +96,7 @@ function Regis() {
           type="text"
           name="name"
           placeholder="Full Name"
-          onChange={setchange}
+          onChange={setChange}
           className="w-full border border-gray-300 p-2.5 rounded-lg mb-4"
         />
 
@@ -99,7 +104,7 @@ function Regis() {
           type="email"
           name="email"
           placeholder="Email"
-          onChange={setchange}
+          onChange={setChange}
           className="w-full border border-gray-300 p-2.5 rounded-lg mb-4"
         />
 
@@ -107,16 +112,15 @@ function Regis() {
           type="password"
           name="password"
           placeholder="Password"
-          onChange={setchange}
+          onChange={setChange}
           className="w-full border border-gray-300 p-2.5 rounded-lg mb-4"
         />
 
-        {/* 🔥 Confirm Password */}
         <input
           type="password"
           name="confirmPassword"
           placeholder="Confirm Password"
-          onChange={setchange}
+          onChange={setChange}
           className="w-full border border-gray-300 p-2.5 rounded-lg mb-4"
         />
 
@@ -128,7 +132,7 @@ function Regis() {
           <RadioGroup
             name="role"
             value={form.role}
-            onChange={setchange}
+            onChange={setChange}
           >
             <FormControlLabel
               value="enduser"

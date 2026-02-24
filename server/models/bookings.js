@@ -36,14 +36,14 @@ const bookingSchema = new mongoose.Schema(
 
     commission: {
       type: Number,
-      required: true,
+      default: 0,
     },
 
     status: {
-  type: String,
-  enum: ["pending", "confirmed", "cancelled","blocked"],
-  default: "pending",
-},
+      type: String,
+      enum: ["pending", "confirmed", "cancelled", "blocked"],
+      default: "pending",
+    },
   },
   { timestamps: true }
 );
@@ -51,4 +51,3 @@ const bookingSchema = new mongoose.Schema(
 const Booking = mongoose.model("Booking", bookingSchema);
 
 export default Booking;
-    

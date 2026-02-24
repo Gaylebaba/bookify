@@ -11,9 +11,11 @@ function Venuedetail() {
 
   useEffect(() => {
 
+    const loggeduser = JSON.parse(localStorage.getItem("loggeduser"));
     const token = localStorage.getItem("token");
 
-    if (!token) {
+    // 🔐 Role Protection
+    if (!loggeduser || !token || loggeduser.role !== "enduser") {
       nav("/login");
       return;
     }
@@ -22,12 +24,7 @@ function Venuedetail() {
       try {
 
         const res = await fetch(
-          "http://localhost:5000/api/auth/venues",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          "http://localhost:5000/api/auth/venues"
         );
 
         const data = await res.json();
@@ -38,10 +35,7 @@ function Venuedetail() {
           return;
         }
 
-        // 🔥 Only approved venues visible to users
-        const approvedVenues = data.filter(v => v.approved === true);
-
-        setVenues(approvedVenues);
+        setVenues(data);
 
       } catch (err) {
         setError("Something went wrong");
@@ -67,10 +61,8 @@ function Venuedetail() {
         }}
       />
 
-      {/* Overlay */}
       <div className="absolute inset-0 bg-black/60"></div>
 
-      {/* Content */}
       <div className="relative z-10 p-8">
 
         <h1 className="text-3xl font-bold text-white mb-2">

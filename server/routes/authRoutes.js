@@ -5,8 +5,8 @@ import { getAllUsers, toggleBlockUser } from "../controllers/userController.js";
 import {
   addVenue,
   getOwnerVenues,
-  getAllVenues,
-  getSingleVenue,
+  getApprovedVenues,
+  getVenueById,
   approveVenue,
   updateVenue
 } from "../controllers/venueController.js";
@@ -38,11 +38,11 @@ router.post("/venue", protect, authorize("owner"), addVenue);
 // Owner get his venues
 router.get("/owner/venues", protect, authorize("owner"), getOwnerVenues);
 
-// Get all approved venues (user side)
-router.get("/venues", getAllVenues);
+// Get all approved venues (public)
+router.get("/venues", getApprovedVenues);
 
 // Get single venue
-router.get("/venues/:id", getSingleVenue);
+router.get("/venues/:id", getVenueById);
 
 // Owner update venue
 router.put("/venues/:id", protect, authorize("owner"), updateVenue);
@@ -54,16 +54,16 @@ router.put("/admin/approve/:id", protect, authorize("admin"), approveVenue);
 /* ================= BOOKINGS ================= */
 
 // User create booking
-router.post("/booking", protect, authorize("user"), createBooking);
+router.post("/booking", protect, authorize("enduser"), createBooking);
 
 // User booking history
-router.get("/user/bookings", protect, authorize("user"), getUserBookings);
+router.get("/user/bookings", protect, authorize("enduser"), getUserBookings);
 
 // Admin view all bookings
 router.get("/admin/bookings", protect, authorize("admin"), getAllBookings);
 
 // Cancel booking
-router.put("/booking/cancel/:id", protect, authorize("user"), cancelBooking);
+router.put("/booking/cancel/:id", protect, authorize("enduser"), cancelBooking);
 
 // Owner block slot
 router.post("/owner/block-slot", protect, authorize("owner"), blockSlot);
@@ -74,21 +74,12 @@ router.get("/owner/analytics", protect, authorize("owner"), getOwnerAnalytics);
 
 /* ================= PAYMENT ================= */
 
-router.post("/payment", protect, authorize("user"), processPayment);
+router.post("/payment", protect, authorize("enduser"), processPayment);
 
-router.get(
-  "/admin/users",
-  protect,
-  authorize("admin"),
-  getAllUsers
-);
 
-router.get(
-  "/admin/users",
-  protect,
-  authorize("admin"),
-  getAllUsers
-);
+/* ================= ADMIN USERS ================= */
+
+router.get("/admin/users", protect, authorize("admin"), getAllUsers);
 
 router.put(
   "/admin/users/:id",

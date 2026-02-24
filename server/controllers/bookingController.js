@@ -25,12 +25,12 @@ export const createBooking = async (req, res) => {
 const existingBookings = await Booking.find({
   venue: venueId,
   date,
-  status: "confirmed",
+  status: { $in: ["confirmed", "blocked"] },
 });
 
 const toMinutes = (time) => {
-  const [hours, minutes] = time.split(":").map(Number);
-  return hours * 60 + minutes;
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
 };
 
 const newStart = toMinutes(startTime);
@@ -45,16 +45,12 @@ for (let booking of existingBookings) {
 
   if (overlap) {
     return res.status(400).json({
-      message: "This time slot is already booked",
+      message: "Slot already booked or blocked",
     });
   }
 }
 
-    if (existingBooking) {
-      return res.status(400).json({
-        message: "This slot is already booked",
-      });
-    }
+    
 
     const amount = venue.price;
 

@@ -13,7 +13,8 @@ function UserHome() {
     const loggeduser = JSON.parse(localStorage.getItem("loggeduser"));
     const token = localStorage.getItem("token");
 
-    if (!loggeduser || !token) {
+    // 🔐 Role Protection
+    if (!loggeduser || !token || loggeduser.role !== "enduser") {
       nav("/login");
       return;
     }
@@ -31,12 +32,17 @@ function UserHome() {
           }
         );
 
+        if (!res.ok) {
+          nav("/login");
+          return;
+        }
+
         const data = await res.json();
 
-        if (res.ok && data.length > 0) {
-          // 🔥 sort by createdAt to get latest
-          const sorted = data.sort(
-            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        if (data.length > 0) {
+          const sorted = [...data].sort(
+            (a, b) =>
+              new Date(b.createdAt) - new Date(a.createdAt)
           );
           setLastBooking(sorted[0]);
         }
@@ -65,12 +71,10 @@ function UserHome() {
       className="min-h-screen bg-cover bg-center relative"
       style={{ backgroundImage: `url(${stadium})` }}
     >
-      {/* Overlay */}
       <div className="absolute inset-0 bg-black/60"></div>
 
       <div className="relative z-10 p-10 text-white">
 
-        {/* Header */}
         <div className="flex justify-between items-start mb-12">
           <div>
             <h1 className="text-4xl font-bold mb-2">
@@ -119,7 +123,7 @@ function UserHome() {
 
         </div>
 
-        {/* Last Booking Section */}
+        {/* Last Booking */}
         <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-xl max-w-3xl">
           <h2 className="text-xl font-semibold mb-4">
             Last Booking

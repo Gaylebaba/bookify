@@ -19,23 +19,15 @@ export const registerUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // Basic validation
-    if (!name || !email || !password || !role) {
+    if (!name || !email || !password) {
       return res.status(400).json({
         message: "All fields are required"
       });
     }
 
-    // Restrict roles (never trust frontend)
-    const allowedRoles = ["enduser", "owner", "admin"];
-    if (!allowedRoles.includes(role)) {
-      return res.status(400).json({
-        message: "Invalid role selected"
-      });
-    }
+    const normalizedEmail = email.toLowerCase();
 
-    // Check if user already exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: normalizedEmail });
 
     if (userExists) {
       return res.status(400).json({
@@ -43,16 +35,17 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
+    // Only allow enduser or owner
+    const userRole = role === "owner" ? "owner" : "enduser";
+
     const user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
-      role,
+      role: userRole,
     });
 
     res.status(201).json({
@@ -86,20 +79,22 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.toLowerCase();
+
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
       return res.status(400).json({
         message: "Invalid credentials"
       });
     }
+
     if (user.blocked) {
       return res.status(403).json({
         message: "Your account has been blocked by admin",
       });
     }
 
-    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {

@@ -33,6 +33,7 @@ export const addVenue = async (req, res) => {
   }
 };
 
+
 /* ================= GET OWNER VENUES ================= */
 
 export const getOwnerVenues = async (req, res) => {
@@ -48,7 +49,8 @@ export const getOwnerVenues = async (req, res) => {
   }
 };
 
-/* ================= APPROVE VENUE ================= */
+
+/* ================= APPROVE VENUE (ADMIN) ================= */
 
 export const approveVenue = async (req, res) => {
   try {
@@ -73,6 +75,10 @@ export const approveVenue = async (req, res) => {
     });
   }
 };
+
+
+/* ================= UPDATE VENUE (OWNER) ================= */
+
 export const updateVenue = async (req, res) => {
   try {
     const venue = await Venue.findById(req.params.id);
@@ -95,10 +101,13 @@ export const updateVenue = async (req, res) => {
     venue.closetime = req.body.closetime || venue.closetime;
     venue.price = req.body.price || venue.price;
 
+    // 🔒 Require re-approval after update
+    venue.approved = false;
+
     await venue.save();
 
     res.status(200).json({
-      message: "Venue updated successfully",
+      message: "Venue updated successfully. Awaiting admin approval.",
       venue,
     });
 
@@ -108,9 +117,11 @@ export const updateVenue = async (req, res) => {
     });
   }
 };
-/* ================= GET ALL APPROVED VENUES ================= */
 
-export const getAllVenues = async (req, res) => {
+
+/* ================= GET ALL APPROVED VENUES (PUBLIC) ================= */
+
+export const getApprovedVenues = async (req, res) => {
   try {
     const venues = await Venue.find({ approved: true });
 
@@ -126,7 +137,7 @@ export const getAllVenues = async (req, res) => {
 
 /* ================= GET SINGLE VENUE ================= */
 
-export const getSingleVenue = async (req, res) => {
+export const getVenueById = async (req, res) => {
   try {
     const venue = await Venue.findById(req.params.id);
 
@@ -143,9 +154,4 @@ export const getSingleVenue = async (req, res) => {
       message: error.message,
     });
   }
-};
-
-export const getAllUsers = async (req, res) => {
-  const users = await User.find().select("-password");
-  res.json(users);
 };

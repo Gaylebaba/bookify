@@ -13,18 +13,27 @@ function Selecttiming() {
 
   const today = new Date().toISOString().split("T")[0];
 
-  // 🔥 Fetch venue + booked slots
   useEffect(() => {
+
+    const loggeduser = JSON.parse(localStorage.getItem("loggeduser"));
+    const token = localStorage.getItem("token");
+
+    // 🔐 Role protection
+    if (!loggeduser || !token || loggeduser.role !== "enduser") {
+      nav("/login");
+      return;
+    }
+
     const fetchData = async () => {
       try {
-        // 1️⃣ Fetch venue
+        // Fetch venue
         const venueRes = await fetch(
           `http://localhost:5000/api/auth/venues/${id}`
         );
         const venueData = await venueRes.json();
         setVenue(venueData);
 
-        // 2️⃣ Fetch bookings for today
+        // Fetch bookings for date
         const bookingRes = await fetch(
           `http://localhost:5000/api/auth/venue/${id}/bookings?date=${today}`
         );
@@ -32,11 +41,11 @@ function Selecttiming() {
         const bookingData = await bookingRes.json();
 
         if (bookingRes.ok) {
-          const confirmed = bookingData
-            .filter(b => b.status === "confirmed")
-            .map(b => `${b.startTime} - ${b.endTime}`);
+          const blocked = bookingData.map(
+            b => `${b.startTime} - ${b.endTime}`
+          );
 
-          setBookedSlots(confirmed);
+          setBookedSlots(blocked);
         }
 
       } catch (error) {
@@ -45,9 +54,9 @@ function Selecttiming() {
     };
 
     fetchData();
-  }, [id]);
 
-  // 🔥 Generate 1-hour slots
+  }, [id, nav, today]);
+
   const generateSlots = (start, end) => {
     const slots = [];
 
@@ -80,7 +89,6 @@ function Selecttiming() {
       ? generateSlots(venue.opentime, venue.closetime)
       : [];
 
-  // 🔥 Create booking
   const handleBooking = async () => {
     if (!selected) {
       alert("Please select a slot");
@@ -88,11 +96,6 @@ function Selecttiming() {
     }
 
     const token = localStorage.getItem("token");
-
-    if (!token) {
-      nav("/login");
-      return;
-    }
 
     const [startTime, endTime] = selected.split(" - ");
 
@@ -127,7 +130,6 @@ function Selecttiming() {
       nav(`/payments/${data.booking._id}`);
 
     } catch (error) {
-      console.error(error);
       alert("Something went wrong");
     }
 
@@ -136,8 +138,6 @@ function Selecttiming() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-6">
-
-      {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
@@ -148,7 +148,6 @@ function Selecttiming() {
       />
       <div className="absolute inset-0 bg-black/60"></div>
 
-      {/* Content */}
       <div className="relative z-10 w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8">
 
         <h1 className="text-2xl font-bold text-gray-800 mb-4">
@@ -184,7 +183,7 @@ function Selecttiming() {
                       : "bg-white hover:bg-gray-100"
                   }`}
               >
-                {slot} {isBooked && "(Booked)"}
+                {slot} {isBooked && "(Unavailable)"}
               </button>
             );
           })}

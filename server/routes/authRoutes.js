@@ -87,5 +87,9 @@ router.put(
   authorize("admin"),
   toggleBlockUser
 );
+router.get(
+  "/venue/:id/bookings",
+  getVenueBookingsByDate
+);
 
 export default router;

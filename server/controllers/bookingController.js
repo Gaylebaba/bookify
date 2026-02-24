@@ -268,3 +268,28 @@ export const blockSlot = async (req, res) => {
     });
   }
 };
+
+export const getVenueBookingsByDate = async (req, res) => {
+  try {
+    const { date } = req.query;
+
+    if (!date) {
+      return res.status(400).json({
+        message: "Date is required",
+      });
+    }
+
+    const bookings = await Booking.find({
+      venue: req.params.id,
+      date,
+      status: { $in: ["confirmed", "blocked"] },
+    });
+
+    res.status(200).json(bookings);
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};

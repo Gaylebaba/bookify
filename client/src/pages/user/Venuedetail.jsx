@@ -31,7 +31,6 @@ function Venuedetail() {
 
         if (!res.ok) {
           setError(data.message || "Failed to fetch venues");
-          setLoading(false);
           return;
         }
 
@@ -61,8 +60,10 @@ function Venuedetail() {
         }}
       />
 
+      {/* Overlay */}
       <div className="absolute inset-0 bg-black/60"></div>
 
+      {/* Content */}
       <div className="relative z-10 p-8">
 
         <h1 className="text-3xl font-bold text-white mb-2">
@@ -84,6 +85,7 @@ function Venuedetail() {
 
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
             {venues.map((v) => (
               <div
                 key={v._id}
@@ -113,6 +115,7 @@ function Venuedetail() {
                 </button>
               </div>
             ))}
+
           </div>
         )}
 

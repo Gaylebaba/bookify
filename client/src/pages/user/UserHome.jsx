@@ -41,8 +41,7 @@ function UserHome() {
 
         if (data.length > 0) {
           const sorted = [...data].sort(
-            (a, b) =>
-              new Date(b.createdAt) - new Date(a.createdAt)
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
           );
           setLastBooking(sorted[0]);
         }
@@ -75,30 +74,47 @@ function UserHome() {
 
       <div className="relative z-10 p-10 text-white">
 
+        {/* Header */}
         <div className="flex justify-between items-start mb-12">
+
+          {/* Left Section */}
           <div>
             <h1 className="text-4xl font-bold mb-2">
               Welcome, {user.name}
             </h1>
 
-            <p className="text-lg text-gray-200">
+            <p className="text-lg text-gray-200 mb-6">
               Ready to book your next game?
             </p>
 
-            <button
-              onClick={() => nav("/venues")}
-              className="mt-6 bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-xl text-lg font-semibold shadow-lg transition"
-            >
-              Browse Venues
-            </button>
+            {/* Buttons Section */}
+            <div className="flex flex-wrap gap-4">
+
+              <button
+                onClick={() => nav("/venues")}
+                className="bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-xl text-lg font-semibold shadow-lg transition"
+              >
+                Browse Venues
+              </button>
+
+              <button
+                onClick={() => nav("/user/history")}
+                className="bg-gray-800 hover:bg-gray-700 px-8 py-3 rounded-xl text-lg font-semibold shadow-lg transition"
+              >
+                View Booking History
+              </button>
+
+            </div>
           </div>
 
+          {/* Logout Button */}
           <button
             onClick={logout}
             className="bg-red-600 hover:bg-red-500 px-5 py-2 rounded-lg font-semibold shadow-md transition"
           >
             Logout
           </button>
+
         </div>
 
         {/* Info Cards */}

@@ -1,6 +1,7 @@
 import express from "express";
 import { registerUser, loginUser } from "../controllers/authController.js";
 import { getAllUsers, toggleBlockUser } from "../controllers/userController.js";
+import UserHistory from "./pages/user/UserHistory";
 
 import {
   addVenue,
@@ -10,6 +11,10 @@ import {
   approveVenue,
   updateVenue
 } from "../controllers/venueController.js";
+import {
+  addReview,
+  getVenueReviews
+} from "../controllers/Reviewcontroller.js";
 
 import {
   createBooking,
@@ -91,5 +96,26 @@ router.get(
   "/venue/:id/bookings",
   getVenueBookingsByDate
 );
+/* ===== REVIEWS ===== */
+
+router.post(
+  "/review",
+  protect,
+  authorize("enduser"),
+  addReview
+);
+
+router.get(
+  "/venues/:id/reviews",
+  getVenueReviews
+);
+
+router.get(
+  "/review/status/:venueId",
+  protect,
+  authorize("enduser"),
+  checkReviewStatus
+);
+<Route path="/user/history" element={<UserHistory />} />
 
 export default router;

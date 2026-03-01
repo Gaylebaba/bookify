@@ -7,10 +7,10 @@ import { createAdminIfNotExists } from "./controllers/authController.js";
 
 dotenv.config();
 
-// Connect Database
-connectdb();
-
 const app = express();
+
+// Connect Database
+await connectdb();
 
 // Middlewares
 app.use(cors());
@@ -36,6 +36,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
 
-  // Auto-create admin if not exists
+  // 🔥 Auto-create admin
   await createAdminIfNotExists();
 });

@@ -1,7 +1,8 @@
 import express from "express";
 import { registerUser, loginUser } from "../controllers/authController.js";
 import { getAllUsers, toggleBlockUser } from "../controllers/userController.js";
-import UserHistory from "./pages/user/UserHistory";
+// import UserHistory from "./pages/user/UserHistory";
+
 
 import {
   addVenue,
@@ -9,11 +10,13 @@ import {
   getApprovedVenues,
   getVenueById,
   approveVenue,
-  updateVenue
+  updateVenue,
+  getAllVenues
 } from "../controllers/venueController.js";
 import {
   addReview,
-  getVenueReviews
+  getVenueReviews,
+  checkReviewStatus
 } from "../controllers/Reviewcontroller.js";
 
 import {
@@ -22,6 +25,7 @@ import {
   getAllBookings,
   cancelBooking,
   getOwnerAnalytics,
+  getVenueBookingsByDate,
   blockSlot
 } from "../controllers/bookingController.js";
 
@@ -54,6 +58,13 @@ router.put("/venues/:id", protect, authorize("owner"), updateVenue);
 
 // Admin approve venue
 router.put("/admin/approve/:id", protect, authorize("admin"), approveVenue);
+
+router.get(
+  "/admin/venues",
+  protect,
+  authorize("admin"),
+  getAllVenues
+);
 
 
 /* ================= BOOKINGS ================= */
@@ -116,6 +127,11 @@ router.get(
   authorize("enduser"),
   checkReviewStatus
 );
-<Route path="/user/history" element={<UserHistory />} />
+router.get(
+  "/user/history",
+  protect,
+  authorize("enduser"),
+  getUserBookings
+);
 
 export default router;

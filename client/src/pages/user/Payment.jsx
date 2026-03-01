@@ -1,45 +1,65 @@
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { light } from "../../assets";
 
 function Payment() {
-    const nav = useNavigate();
-    const [booking, setbooking] = useState(null);
-    const [mode, setmode] = useState("");
 
-    useEffect(() => {
-        const saved = JSON.parse(localStorage.getItem("selectedbooking"));
-        if (!saved) {
-            nav("/home");
-        } else {
-            setbooking(saved);
-        }
-    }, [nav]);
+  const nav = useNavigate();
+  const { bookingId } = useParams();
+  const [loading, setLoading] = useState(false);
 
-    const confirmbook = () => {
-        if (!mode) {
-            alert("please select mode");
-            return;
-        }
-        const finalbook = {
-            ...booking,
-            Paymentmode: mode,
-            status: "confirmed",
-            date: new Date().toLocaleDateString(),
-        };
-        localStorage.setItem("lastbook", JSON.stringify(finalbook));
+  const handlePayment = async () => {
 
-        alert("booking confirmed");
+    const token = localStorage.getItem("token");
 
-        nav("/home");
-    };
-    if (!booking) {
-        return null;
+    if (!token) {
+      nav("/login");
+      return;
     }
-    return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-            <div
+
+    setLoading(true);
+
+    setTimeout(async () => {
+
+      try {
+
+        const res = await fetch(
+          "http://localhost:5000/api/auth/payment",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ bookingId }),
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.message);
+          setLoading(false);
+          return;
+        }
+
+        alert("Payment Successful!");
+        nav("/home");
+
+      } catch (error) {
+        alert("Payment failed");
+      }
+
+      setLoading(false);
+
+    }, 2000);
+
+  };
+
+  return (
+    <div className="relative min-h-screen flex items-center justify-center p-6">
+
+      <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage: `url(${light})`,
@@ -49,42 +69,28 @@ function Payment() {
       />
       <div className="absolute inset-0 bg-black/60"></div>
 
-      {/* Card */}
       <div className="relative z-10 bg-white w-full max-w-md rounded-2xl shadow-2xl p-8">
-                <h1 className="text-2xl font-bold text-gray-800 mb-4">
-                    Payment
-                </h1>
-                <div className="mb-4 text-gray-700">
-                    <p><strong>Venue ID:</strong> {booking.venueid}</p>
-                    <p><strong>Time Slot:</strong> {booking.slot}</p>
-                </div>
 
-                <div className="mb-6">
-                    <p className="font-semibold mb-2">Select Payment Mode</p>
-                    <label className="flex items-center gap-2 mb-2">
-                        <input type="radio" name="mode" value="cash" onChange={(e) => setmode(e.target.value)} />
-                        cash
-                    </label>
-                    <label className="flex items-center gap-2">
-                        <input
-                            type="radio"
-                            name="mode"
-                            value="online"
-                            onChange={(e) => setmode(e.target.value)}
-                        />
-                        Online
-                    </label>
-                </div>
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">
+          Razorpay Secure Payment (Test Mode)
+        </h1>
 
-                <button
-                    onClick={confirmbook}
-                    className="w-full bg-green-600 text-white py-3 rounded font-semibold hover:bg-green-700"
-                >
-                    Confirm Booking
-                </button>
-            </div>
-        </div>
-    );
+        <p className="text-sm text-gray-600 mb-6">
+          Booking ID: {bookingId}
+        </p>
+
+        <button
+          onClick={handlePayment}
+          disabled={loading}
+          className="w-full bg-indigo-600 text-white py-3 rounded font-semibold hover:bg-indigo-700 transition"
+        >
+          {loading ? "Processing..." : "Pay Now"}
+        </button>
+
+      </div>
+
+    </div>
+  );
 }
 
 export default Payment;

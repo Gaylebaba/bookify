@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { light } from "../../assets";
 
 function UserHistory() {
 
@@ -16,7 +17,6 @@ function UserHistory() {
     const loggeduser = JSON.parse(localStorage.getItem("loggeduser"));
     const token = localStorage.getItem("token");
 
-    // 🔐 Role Protection
     if (!loggeduser || !token || loggeduser.role !== "enduser") {
       nav("/login");
       return;
@@ -24,7 +24,6 @@ function UserHistory() {
 
     const fetchBookings = async () => {
       try {
-
         const res = await fetch(
           "http://localhost:5000/api/auth/user/bookings",
           {
@@ -64,7 +63,6 @@ function UserHistory() {
     }
 
     try {
-
       const res = await fetch(
         "http://localhost:5000/api/auth/review",
         {
@@ -100,105 +98,132 @@ function UserHistory() {
   };
 
   return (
-    <div className="min-h-screen p-10 bg-gray-100">
+    <div className="relative min-h-screen">
 
-      <h1 className="text-3xl font-bold mb-8">
-        Booking History
-      </h1>
+      {/* Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${light})`,
+          filter: "blur(6px)",
+          transform: "scale(1.05)",
+        }}
+      />
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : bookings.length === 0 ? (
-        <p>No bookings found.</p>
-      ) : (
-        <div className="space-y-6">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/70"></div>
 
-          {bookings.map((b) => (
-            <div
-              key={b._id}
-              className="bg-white p-5 rounded shadow"
-            >
+      {/* Content */}
+      <div className="relative z-10 p-10 text-white">
 
-              <p><strong>Venue:</strong> {b.venue?.name}</p>
-              <p><strong>Date:</strong> {b.date}</p>
-              <p>
-                <strong>Time:</strong> {b.startTime} - {b.endTime}
-              </p>
+        <div className="flex justify-between items-center mb-10">
+          <h1 className="text-4xl font-bold">
+            Booking History
+          </h1>
 
-              <p>
-                <strong>Status:</strong>{" "}
-                <span
-                  className={
-                    b.status === "confirmed"
-                      ? "text-green-600"
-                      : b.status === "cancelled"
-                      ? "text-red-600"
-                      : "text-yellow-600"
-                  }
-                >
-                  {b.status}
-                </span>
-              </p>
-
-              <p><strong>Amount:</strong> ₹ {b.amount}</p>
-
-              {/* 🔥 Show review button only if confirmed */}
-              {b.status === "confirmed" && (
-                <div className="mt-4">
-
-                  <button
-                    onClick={() => setReviewVenue(b.venue._id)}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded"
-                  >
-                    Write Review
-                  </button>
-
-                </div>
-              )}
-
-              {/* 🔥 Review Form */}
-              {reviewVenue === b.venue._id && (
-                <div className="mt-4 border-t pt-4">
-
-                  <label className="block mb-2">
-                    Rating:
-                  </label>
-
-                  <select
-                    value={rating}
-                    onChange={(e) => setRating(e.target.value)}
-                    className="border p-2 rounded mb-3"
-                  >
-                    <option value="5">5</option>
-                    <option value="4">4</option>
-                    <option value="3">3</option>
-                    <option value="2">2</option>
-                    <option value="1">1</option>
-                  </select>
-
-                  <textarea
-                    placeholder="Write your experience..."
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    className="w-full border p-2 rounded mb-3"
-                  />
-
-                  <button
-                    onClick={() => submitReview(b.venue._id)}
-                    className="bg-green-600 text-white px-4 py-2 rounded"
-                  >
-                    Submit Review
-                  </button>
-
-                </div>
-              )}
-
-            </div>
-          ))}
-
+          <button
+            onClick={() => nav("/home")}
+            className="bg-indigo-600 hover:bg-indigo-500 px-6 py-2 rounded-lg font-semibold transition"
+          >
+            Back
+          </button>
         </div>
-      )}
 
+        {loading ? (
+          <p className="text-gray-300">Loading...</p>
+        ) : bookings.length === 0 ? (
+          <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-xl max-w-xl">
+            <p className="text-gray-300">
+              No bookings found.
+            </p>
+            <button
+              onClick={() => nav("/venues")}
+              className="mt-4 bg-indigo-600 hover:bg-indigo-500 px-6 py-2 rounded-lg font-semibold transition"
+            >
+              Book Now
+            </button>
+          </div>
+        ) : (
+          <div className="grid gap-6 max-w-4xl">
+
+            {bookings.map((b) => (
+              <div
+                key={b._id}
+                className="bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-xl"
+              >
+                <p><strong>Venue:</strong> {b.venue?.name}</p>
+                <p><strong>Date:</strong> {b.date}</p>
+                <p><strong>Time:</strong> {b.startTime} - {b.endTime}</p>
+
+                <p>
+                  <strong>Status:</strong>{" "}
+                  <span
+                    className={
+                      b.status === "confirmed"
+                        ? "text-green-400"
+                        : b.status === "cancelled"
+                        ? "text-red-400"
+                        : "text-yellow-400"
+                    }
+                  >
+                    {b.status}
+                  </span>
+                </p>
+
+                <p><strong>Amount:</strong> ₹ {b.amount}</p>
+
+                {b.status === "confirmed" && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => setReviewVenue(b.venue._id)}
+                      className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg"
+                    >
+                      Write Review
+                    </button>
+                  </div>
+                )}
+
+                {reviewVenue === b.venue._id && (
+                  <div className="mt-4 border-t border-white/20 pt-4">
+
+                    <label className="block mb-2">Rating:</label>
+
+                    <select
+                      value={rating}
+                      onChange={(e) => setRating(e.target.value)}
+                      className="text-black border p-2 rounded mb-3"
+                    >
+                      <option value="5">5</option>
+                      <option value="4">4</option>
+                      <option value="3">3</option>
+                      <option value="2">2</option>
+                      <option value="1">1</option>
+                    </select>
+
+                    <textarea
+                      placeholder="Write your experience..."
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      className="w-full text-black border p-2 rounded mb-3"
+                    />
+
+                    <button
+                      onClick={() => submitReview(b.venue._id)}
+                      className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg"
+                    >
+                      Submit Review
+                    </button>
+
+                  </div>
+                )}
+
+              </div>
+            ))}
+
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

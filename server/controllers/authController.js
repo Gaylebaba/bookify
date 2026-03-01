@@ -13,6 +13,33 @@ const generateToken = (id, role) => {
 };
 
 
+/* ================= CREATE DEFAULT ADMIN ================= */
+
+export const createAdminIfNotExists = async () => {
+  try {
+    const adminExists = await User.findOne({ role: "admin" });
+
+    if (!adminExists) {
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash("admin123", salt);
+
+      await User.create({
+        name: "Super Admin",
+        email: "admin@gmail.com",
+        password: hashedPassword,
+        role: "admin",
+      });
+
+      console.log("✅ Default Admin Created");
+    }
+
+  } catch (error) {
+    console.log("Admin creation error:", error.message);
+  }
+};
+
+
 /* ================= REGISTER ================= */
 
 export const registerUser = async (req, res) => {
@@ -21,7 +48,7 @@ export const registerUser = async (req, res) => {
 
     if (!name || !email || !password) {
       return res.status(400).json({
-        message: "All fields are required"
+        message: "All fields are required",
       });
     }
 
@@ -31,14 +58,14 @@ export const registerUser = async (req, res) => {
 
     if (userExists) {
       return res.status(400).json({
-        message: "User already exists"
+        message: "User already exists",
       });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Only allow enduser or owner
+    // 🔐 Only allow enduser or owner registration
     const userRole = role === "owner" ? "owner" : "enduser";
 
     const user = await User.create({
@@ -54,14 +81,14 @@ export const registerUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
 
   } catch (error) {
     res.status(500).json({
       message: "Server Error",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -75,7 +102,7 @@ export const loginUser = async (req, res) => {
 
     if (!email || !password) {
       return res.status(400).json({
-        message: "All fields are required"
+        message: "All fields are required",
       });
     }
 
@@ -85,7 +112,7 @@ export const loginUser = async (req, res) => {
 
     if (!user) {
       return res.status(400).json({
-        message: "Invalid credentials"
+        message: "Invalid credentials",
       });
     }
 
@@ -99,7 +126,7 @@ export const loginUser = async (req, res) => {
 
     if (!isMatch) {
       return res.status(400).json({
-        message: "Invalid credentials"
+        message: "Invalid credentials",
       });
     }
 
@@ -112,14 +139,14 @@ export const loginUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
 
   } catch (error) {
     res.status(500).json({
       message: "Server Error",
-      error: error.message
+      error: error.message,
     });
   }
 };

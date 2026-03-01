@@ -1,5 +1,5 @@
 import Review from "../models/Review.js";
-import Booking from "../models/booking.js";
+import Booking from "../models/bookings.js";
 
 /* ===== ADD REVIEW ===== */
 

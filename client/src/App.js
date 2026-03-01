@@ -8,6 +8,8 @@ import UserHome from "./pages/user/UserHome";
 import Venuedetail from "./pages/user/Venuedetail";
 import Selecttiming from "./pages/user/Selecttiming";
 import Payment from "./pages/user/Payment";
+import Paymentsuccess from "./pages/user/Paymentsuccess";
+import Userhistory from "./pages/user/Userhistory";
 
 import Ownerhome from "./pages/owner/Ownerhome";
 import Addvenue from "./pages/owner/Addvenue";
@@ -35,7 +37,9 @@ function App() {
         {/* USER */}
         <Route path="/home" element={<UserHome />} />
         <Route path="/selecttime/:id" element={<Selecttiming />} />
-        <Route path="/payments/:id" element={<Payment />} />
+        <Route path="/payments/:bookingId" element={<Payment />} />
+        <Route path="/payment-success" element={<Paymentsuccess />} />
+        <Route path="/user/history" element={<Userhistory />} />
 
         {/* OWNER */}
         <Route path="/owner" element={<Ownerhome />} />

@@ -21,7 +21,7 @@ function Admincomm() {
       try {
 
         const res = await fetch(
-          "http://localhost:5000/api/auth/booking/all",
+          "http://localhost:5000/api/auth/admin/bookings",
           {
             headers: {
               Authorization: `Bearer ${token}`

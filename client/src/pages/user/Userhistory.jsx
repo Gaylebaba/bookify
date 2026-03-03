@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { light } from "../../assets";
+import stadium from "../../assets/images/stadium.jpg";
 
 function UserHistory() {
 
@@ -98,20 +98,19 @@ function UserHistory() {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen ">
 
       {/* Background */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="fixed inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: `url(${light})`,
-          filter: "blur(6px)",
-          transform: "scale(1.05)",
+          backgroundImage: `url(${stadium})`,
+          
         }}
       />
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/70"></div>
+     <div className="fixed inset-0 backdrop-blur-xl bg-white/5"></div>
 
       {/* Content */}
       <div className="relative z-10 p-10 text-white">
@@ -149,7 +148,7 @@ function UserHistory() {
             {bookings.map((b) => (
               <div
                 key={b._id}
-                className="bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-xl"
+                className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/10"
               >
                 <p><strong>Venue:</strong> {b.venue?.name}</p>
                 <p><strong>Date:</strong> {b.date}</p>
@@ -175,7 +174,7 @@ function UserHistory() {
                 {b.status === "confirmed" && (
                   <div className="mt-4">
                     <button
-                      onClick={() => setReviewVenue(b.venue._id)}
+                      onClick={() => setReviewVenue(b._id)}
                       className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg"
                     >
                       Write Review
@@ -183,7 +182,7 @@ function UserHistory() {
                   </div>
                 )}
 
-                {reviewVenue === b.venue._id && (
+                {reviewVenue === b._id && (
                   <div className="mt-4 border-t border-white/20 pt-4">
 
                     <label className="block mb-2">Rating:</label>

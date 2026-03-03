@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { light } from "../../assets";
 
-function Selecttiming() {
+function OwnersetSlot() {
   const nav = useNavigate();
   const { id } = useParams();
 
@@ -14,53 +14,67 @@ function Selecttiming() {
   const [bookedSlots, setBookedSlots] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  /* ================= AUTH + FETCH ================= */
-
+  /* ================= AUTH CHECK ================= */
   useEffect(() => {
     const loggeduser = JSON.parse(localStorage.getItem("loggeduser"));
     const token = localStorage.getItem("token");
 
-    if (!loggeduser || !token || loggeduser.role !== "enduser") {
+    if (!loggeduser || !token || loggeduser.role !== "owner") {
       nav("/login");
       return;
     }
 
-    const fetchData = async () => {
-      try {
-        // Fetch venue details
-        const venueRes = await fetch(
-          `http://localhost:5000/api/auth/venues/${id}`
-        );
-        const venueData = await venueRes.json();
-        setVenue(venueData);
+    fetchVenue();
+  }, [id, nav]);
 
-        // Fetch bookings for selected date
-        const bookingRes = await fetch(
-          `http://localhost:5000/api/auth/venue/${id}/bookings?date=${selectedDate}`
-        );
+  /* ================= FETCH VENUE ================= */
+  const fetchVenue = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/auth/venues/${id}`
+      );
+      const data = await res.json();
+      setVenue(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-        const bookingData = await bookingRes.json();
+  /* ================= FETCH BOOKINGS ================= */
+  useEffect(() => {
+    fetchBookings();
+  }, [selectedDate]);
 
-        if (bookingRes.ok) {
-          const blocked = bookingData
-            .filter(
-              (b) =>
-                b.status === "confirmed" || b.status === "blocked"
-            )
-            .map((b) => `${b.startTime} - ${b.endTime}`);
+  const fetchBookings = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-          setBookedSlots(blocked);
+      const res = await fetch(
+        `http://localhost:5000/api/auth/owner/venue/${id}/bookings`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
         }
-      } catch (error) {
-        console.error(error);
-      }
-    };
+      );
 
-    fetchData();
-  }, [id, nav, selectedDate]);
+      const data = await res.json();
+
+      if (res.ok) {
+        const takenSlots = data
+          .filter(
+            (b) =>
+              b.date === selectedDate &&
+              (b.status === "confirmed" || b.status === "blocked")
+          )
+          .map((b) => `${b.startTime} - ${b.endTime}`);
+
+        setBookedSlots(takenSlots);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   /* ================= SLOT GENERATOR ================= */
-
   const generateSlots = (start, end) => {
     const slots = [];
 
@@ -93,9 +107,8 @@ function Selecttiming() {
       ? generateSlots(venue.opentime, venue.closetime)
       : [];
 
-  /* ================= HANDLE BOOKING ================= */
-
-  const handleBooking = async () => {
+  /* ================= BLOCK SLOT ================= */
+  const handleBlockSlot = async () => {
     if (!selectedSlot) {
       alert("Please select a slot");
       return;
@@ -108,19 +121,19 @@ function Selecttiming() {
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/auth/booking",
+        "http://localhost:5000/api/auth/owner/block-slot",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({
             venueId: id,
             date: selectedDate,
             startTime,
-            endTime,
-          }),
+            endTime
+          })
         }
       );
 
@@ -132,7 +145,10 @@ function Selecttiming() {
         return;
       }
 
-      nav(`/payments/${data.booking._id}`);
+      alert("Slot blocked successfully");
+      setSelectedSlot("");
+      fetchBookings();
+
     } catch (error) {
       alert("Something went wrong");
     }
@@ -140,17 +156,14 @@ function Selecttiming() {
     setLoading(false);
   };
 
-  /* ================= UI ================= */
-
   return (
     <div className="relative min-h-screen flex items-center justify-center p-6">
-      {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage: `url(${light})`,
           filter: "blur(6px)",
-          transform: "scale(1.05)",
+          transform: "scale(1.05)"
         }}
       />
       <div className="absolute inset-0 bg-black/60"></div>
@@ -158,7 +171,7 @@ function Selecttiming() {
       <div className="relative z-10 w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8">
 
         <h1 className="text-2xl font-bold text-gray-800 mb-4">
-          Select Date & Time
+          Block Slot (Owner)
         </h1>
 
         {venue && (
@@ -166,21 +179,16 @@ function Selecttiming() {
             <p className="text-gray-600">
               <strong>Venue:</strong> {venue.name}
             </p>
-            <p className="text-green-600 font-semibold">
-              ₹ {venue.price} / hour
-            </p>
           </div>
         )}
 
-        {/* 🔥 Date Picker */}
+        {/* DATE PICKER */}
         <label className="block text-sm text-gray-700 mb-1">
           Select Date
         </label>
-
         <input
           type="date"
           value={selectedDate}
-          min={new Date().toISOString().split("T")[0]}
           onChange={(e) => {
             setSelectedDate(e.target.value);
             setSelectedSlot("");
@@ -188,7 +196,7 @@ function Selecttiming() {
           className="w-full border p-2.5 rounded-lg mb-6"
         />
 
-        {/* 🔥 Slots */}
+        {/* SLOTS */}
         <div className="grid grid-cols-1 gap-4 mb-6">
           {slots.map((slot, index) => {
             const isBooked = bookedSlots.includes(slot);
@@ -198,14 +206,13 @@ function Selecttiming() {
                 key={index}
                 disabled={isBooked}
                 onClick={() => !isBooked && setSelectedSlot(slot)}
-                className={`border px-4 py-3 rounded text-left transition
-                  ${
-                    isBooked
-                      ? "bg-red-200 text-red-600 cursor-not-allowed"
-                      : selectedSlot === slot
-                      ? "bg-indigo-600 text-white border-indigo-600"
-                      : "bg-white hover:bg-gray-100"
-                  }`}
+                className={`border px-4 py-3 rounded text-left transition ${
+                  isBooked
+                    ? "bg-red-200 text-red-600 cursor-not-allowed"
+                    : selectedSlot === slot
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-white hover:bg-gray-100"
+                }`}
               >
                 {slot} {isBooked && "(Unavailable)"}
               </button>
@@ -214,11 +221,11 @@ function Selecttiming() {
         </div>
 
         <button
-          onClick={handleBooking}
+          onClick={handleBlockSlot}
           disabled={loading}
-          className="w-full bg-green-600 text-white py-3 rounded font-semibold hover:bg-green-700 transition"
+          className="w-full bg-red-600 text-white py-3 rounded font-semibold hover:bg-red-700 transition"
         >
-          {loading ? "Processing..." : "Continue to Payment"}
+          {loading ? "Processing..." : "Block Slot"}
         </button>
 
       </div>
@@ -226,4 +233,4 @@ function Selecttiming() {
   );
 }
 
-export default Selecttiming;
+export default OwnersetSlot;

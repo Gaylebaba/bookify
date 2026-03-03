@@ -10,12 +10,16 @@ import Selecttiming from "./pages/user/Selecttiming";
 import Payment from "./pages/user/Payment";
 import Paymentsuccess from "./pages/user/Paymentsuccess";
 import Userhistory from "./pages/user/Userhistory";
+import Singlevenue from "./pages/user/Singlevenue";
 
 import Ownerhome from "./pages/owner/Ownerhome";
 import Addvenue from "./pages/owner/Addvenue";
 import Ownervenue from "./pages/owner/Ownervenue";
 import Editvenue from "./pages/owner/Editvenue";
 import Setslot from "./pages/owner/Setslot";
+import ProtectedRoute from "./middleware/ProtectedRoute";
+import Ownerbookings from "./pages/owner/Ownerbookings";
+import Ownersetslot from "./pages/owner/Ownersetslot";
 
 import Adminvenue from "./pages/admin/Adminvenue";
 import Adminhome from "./pages/admin/Adminhome";
@@ -40,6 +44,7 @@ function App() {
         <Route path="/payments/:bookingId" element={<Payment />} />
         <Route path="/payment-success" element={<Paymentsuccess />} />
         <Route path="/user/history" element={<Userhistory />} />
+        <Route path="/venues/:id" element={<Singlevenue />} />
 
         {/* OWNER */}
         <Route path="/owner" element={<Ownerhome />} />
@@ -47,6 +52,18 @@ function App() {
         <Route path="/owner/venues" element={<Ownervenue />} />
         <Route path="/owner/edit/:id" element={<Editvenue />} />
         <Route path="/owner/slots/:id" element={<Setslot />} />
+        <Route
+          path="/owner/bookings"
+          element={
+            <ProtectedRoute role="owner">
+              <Ownerbookings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/owner/set-slot/:id"
+          element={<Ownersetslot />}
+        />
 
         {/* ADMIN */}
         <Route path="/admin" element={<Adminhome />} />

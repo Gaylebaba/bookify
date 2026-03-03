@@ -97,7 +97,7 @@ function Ownervenue() {
                   </button>
 
                   <button
-                    onClick={() => nav(`/owner/slots/${v._id}`)}
+                    onClick={() => nav(`/owner/set-slot/${v._id}`)}
                     className="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition"
                   >
                     Set Slots

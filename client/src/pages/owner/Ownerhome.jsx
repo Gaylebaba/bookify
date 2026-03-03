@@ -94,25 +94,34 @@ function Ownerhome() {
         </p>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <Statcard title="Total Venues" value={stats.totalvenue} />
-          <Statcard title="Approved Venues" value={stats.approvedvenue} />
-          <Statcard title="Pending Venues" value={stats.pendingvenue} />
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+            <Statcard title="Total Venues" value={stats.totalvenue} />
+            <Statcard title="Approved Venues" value={stats.approvedvenue} />
+            <Statcard title="Pending Venues" value={stats.pendingvenue} />
+          </div>
         </div>
 
         {/* Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Actioncard
-            title="Add Venue"
-            desc="Register a new sports venue"
-            onClick={() => nav("/owner/addv")}
-          />
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <Actioncard
+              title="Add Venue"
+              desc="Register a new sports venue"
+              onClick={() => nav("/owner/addv")}
+            />
 
-          <Actioncard
-            title="Manage Venues"
-            desc="Edit venue details and manage slots"
-            onClick={() => nav("/owner/venues")}
-          />
+            <Actioncard
+              title="Manage Venues"
+              desc="Edit venue details and manage slots"
+              onClick={() => nav("/owner/venues")}
+            />
+            <Actioncard
+              title="View Bookings"
+              desc="See bookings for your venues"
+              onClick={() => nav("/owner/bookings")}
+            />
+          </div>
         </div>
 
       </div>

@@ -60,7 +60,7 @@ router.put("/venues/:id", protect, authorize("owner"), updateVenue);
 router.put("/admin/approve/:id", protect, authorize("admin"), approveVenue);
 
 router.get(
-  "/admin/venues",
+  "/venue/all",
   protect,
   authorize("admin"),
   getAllVenues
@@ -104,7 +104,9 @@ router.put(
   toggleBlockUser
 );
 router.get(
-  "/venue/:id/bookings",
+  "/owner/venue/:id/bookings",
+  protect,
+  authorize("owner"),
   getVenueBookingsByDate
 );
 /* ===== REVIEWS ===== */

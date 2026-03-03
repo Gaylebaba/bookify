@@ -269,27 +269,30 @@ export const blockSlot = async (req, res) => {
   }
 };
 
+
 export const getVenueBookingsByDate = async (req, res) => {
   try {
-    const { date } = req.query;
+    console.log("🔥 ROUTE HIT");
+    console.log("PARAM ID:", req.params.id);
+    console.log("LOGGED OWNER:", req.user._id.toString());
 
-    if (!date) {
-      return res.status(400).json({
-        message: "Date is required",
-      });
+    const venue = await Venue.findById(req.params.id);
+
+    if (!venue) {
+      console.log("❌ Venue not found");
+      return res.status(404).json({ message: "Venue not found" });
     }
 
-    const bookings = await Booking.find({
-      venue: req.params.id,
-      date,
-      status: { $in: ["confirmed", "blocked"] },
-    });
+    console.log("VENUE OWNER:", venue.owner.toString());
 
-    res.status(200).json(bookings);
+    const bookings = await Booking.find({ venue: venue._id });
+
+    console.log("BOOKINGS FOUND:", bookings.length);
+
+    res.json(bookings);
 
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    console.log("ERROR:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };

@@ -155,3 +155,14 @@ export const getVenueById = async (req, res) => {
     });
   }
 };
+
+export const getAllVenues = async (req, res) => {
+  try {
+    const venues = await Venue.find().populate("owner", "name email");
+    res.status(200).json(venues);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};

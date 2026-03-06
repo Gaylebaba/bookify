@@ -4,7 +4,7 @@ import Venue from "../models/venue.js";
 /* ================= CREATE BOOKING ================= */
 export const createBooking = async (req, res) => {
   try {
-    const { venueId, date, startTime, endTime } = req.body;
+    const { venueId, sport, date, startTime, endTime } = req.body;
 
     if (!venueId || !date || !startTime || !endTime) {
       return res.status(400).json({
@@ -22,41 +22,43 @@ export const createBooking = async (req, res) => {
 
     // 🔒 Check exact slot conflict (basic version)
     // 🔒 CHECK TIME OVERLAP
-const existingBookings = await Booking.find({
-  venue: venueId,
-  date,
-  status: { $in: ["confirmed", "blocked"] },
-});
-
-const toMinutes = (time) => {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
-};
-
-const newStart = toMinutes(startTime);
-const newEnd = toMinutes(endTime);
-
-for (let booking of existingBookings) {
-  const existingStart = toMinutes(booking.startTime);
-  const existingEnd = toMinutes(booking.endTime);
-
-  const overlap =
-    newStart < existingEnd && newEnd > existingStart;
-
-  if (overlap) {
-    return res.status(400).json({
-      message: "Slot already booked or blocked",
+    const existingBookings = await Booking.find({
+      venue: venueId,
+      sport: sport,
+      date,
+      status: { $in: ["confirmed", "blocked"] },
     });
-  }
-}
 
-    
+    const toMinutes = (time) => {
+      const [h, m] = time.split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    const newStart = toMinutes(startTime);
+    const newEnd = toMinutes(endTime);
+
+    for (let booking of existingBookings) {
+      const existingStart = toMinutes(booking.startTime);
+      const existingEnd = toMinutes(booking.endTime);
+
+      const overlap =
+        newStart < existingEnd && newEnd > existingStart;
+
+      if (overlap) {
+        return res.status(400).json({
+          message: "Slot already booked or blocked",
+        });
+      }
+    }
+
+
 
     const amount = venue.price;
 
     const booking = await Booking.create({
       user: req.user._id,
       venue: venueId,
+      sport,
       date,
       startTime,
       endTime,
@@ -272,22 +274,15 @@ export const blockSlot = async (req, res) => {
 
 export const getVenueBookingsByDate = async (req, res) => {
   try {
-    console.log("🔥 ROUTE HIT");
-    console.log("PARAM ID:", req.params.id);
-    console.log("LOGGED OWNER:", req.user._id.toString());
 
-    const venue = await Venue.findById(req.params.id);
+    const { date, sport } = req.query;
 
-    if (!venue) {
-      console.log("❌ Venue not found");
-      return res.status(404).json({ message: "Venue not found" });
-    }
-
-    console.log("VENUE OWNER:", venue.owner.toString());
-
-    const bookings = await Booking.find({ venue: venue._id });
-
-    console.log("BOOKINGS FOUND:", bookings.length);
+    const bookings = await Booking.find({
+      venue: req.params.id,
+      date: date,
+      sport: sport,
+      status: { $in: ["confirmed", "blocked"] }
+    });
 
     res.json(bookings);
 

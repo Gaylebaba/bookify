@@ -116,16 +116,43 @@ function Addvenue() {
           className="w-full border p-2.5 rounded-lg mb-4"
         />
 
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Sports Type
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Select Sports Available
         </label>
-        <input
-          type="text"
-          name="sports"
-          value={venue.sports}
-          onChange={setchange}
-          className="w-full border p-2.5 rounded-lg mb-4"
-        />
+
+        <div className="flex flex-wrap gap-2 mb-4">
+
+          {["Cricket", "Football", "Badminton", "Basketball", "Tennis"].map((sport) => (
+
+            <button
+              type="button"
+              key={sport}
+              onClick={() => {
+
+                let sportsArray = venue.sports ? venue.sports.split(",") : [];
+
+                if (sportsArray.includes(sport)) {
+                  sportsArray = sportsArray.filter((s) => s !== sport);
+                } else {
+                  sportsArray.push(sport);
+                }
+
+                setVenue({ ...venue, sports: sportsArray.join(",") });
+
+              }}
+              className={`px-3 py-1 rounded-lg border text-sm transition
+      ${venue.sports.split(",").includes(sport)
+                  ? "bg-indigo-600 text-white border-indigo-600"
+                  : "bg-gray-100"
+                }`}
+            >
+              {sport}
+
+            </button>
+
+          ))}
+
+        </div>
 
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Price Per Hour (₹)

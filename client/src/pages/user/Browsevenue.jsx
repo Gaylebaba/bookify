@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { light } from "../../assets";
+import stadium from "../../assets/images/stadium.jpg";
 
 function BrowseVenue() {
 
@@ -53,25 +53,23 @@ function BrowseVenue() {
 
       {/* Background */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="fixed inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: `url(${light})`,
-          filter: "blur(6px)",
-          transform: "scale(1.05)",
+          backgroundImage: `url(${stadium})`,
         }}
       />
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/60"></div>
+      {/* Balanced Dark Blur Overlay */}
+      <div className="fixed inset-0 backdrop-blur-xl bg-black/50"></div>
 
       {/* Content */}
-      <div className="relative z-10 p-8">
+      <div className="relative z-10 p-10 max-w-6xl mx-auto">
 
-        <h1 className="text-3xl font-bold text-white mb-2">
+        <h1 className="text-4xl font-bold text-white mb-3">
           Browse Venues
         </h1>
 
-        <p className="text-gray-200 mb-8">
+        <p className="text-gray-300 mb-10">
           Choose a venue and select your preferred slot
         </p>
 
@@ -85,32 +83,32 @@ function BrowseVenue() {
           <p className="text-white">No approved venues available</p>
 
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
             {venues.map((v) => (
               <div
                 key={v._id}
-                className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition"
+                className="bg-black/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-2xl hover:scale-[1.02] transition duration-300"
               >
-                <h2 className="text-xl font-semibold text-gray-800">
+                <h2 className="text-2xl font-semibold text-white">
                   {v.name}
                 </h2>
 
-                <p className="text-gray-600 mt-2">
+                <p className="text-gray-300 mt-3">
                   <strong>Sports:</strong> {v.sports}
                 </p>
 
-                <p className="text-gray-600 mt-1">
+                <p className="text-gray-300 mt-1">
                   <strong>Timing:</strong> {v.opentime} - {v.closetime}
                 </p>
 
-                <p className="text-green-600 font-semibold mt-2">
+                <p className="text-green-400 font-semibold mt-3 text-lg">
                   ₹ {v.price} / hour
                 </p>
 
                 <button
                   onClick={() => nav(`/selecttime/${v._id}`)}
-                  className="mt-5 bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition font-semibold"
+                  className="mt-6 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition font-semibold"
                 >
                   Select Time
                 </button>

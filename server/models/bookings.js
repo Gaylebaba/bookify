@@ -13,6 +13,10 @@ const bookingSchema = new mongoose.Schema(
       ref: "Venue",
       required: true,
     },
+    sport: {
+      type: String,
+      required: true
+    },
 
     date: {
       type: String,

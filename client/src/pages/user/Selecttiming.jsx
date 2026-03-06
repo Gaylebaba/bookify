@@ -1,10 +1,13 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { light } from "../../assets";
 
 function Selecttiming() {
   const nav = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const sport = query.get("sport");
 
   const [venue, setVenue] = useState(null);
   const [selectedDate, setSelectedDate] = useState(
@@ -36,9 +39,8 @@ function Selecttiming() {
 
         // Fetch bookings for selected date
         const bookingRes = await fetch(
-          `http://localhost:5000/api/auth/venue/${id}/bookings?date=${selectedDate}`
+          `http://localhost:5000/api/auth/venue/${id}/bookings?date=${selectedDate}&sport=${sport}`
         );
-
         const bookingData = await bookingRes.json();
 
         if (bookingRes.ok) {
@@ -57,7 +59,7 @@ function Selecttiming() {
     };
 
     fetchData();
-  }, [id, nav, selectedDate]);
+  }, [id, nav, selectedDate,sport]);
 
   /* ================= SLOT GENERATOR ================= */
 
@@ -117,6 +119,7 @@ function Selecttiming() {
           },
           body: JSON.stringify({
             venueId: id,
+            sport: sport,
             date: selectedDate,
             startTime,
             endTime,
@@ -166,6 +169,9 @@ function Selecttiming() {
             <p className="text-gray-600">
               <strong>Venue:</strong> {venue.name}
             </p>
+            <p className="text-blue-600 font-semibold">
+              Sport: {sport}
+            </p>
             <p className="text-green-600 font-semibold">
               ₹ {venue.price} / hour
             </p>
@@ -199,10 +205,9 @@ function Selecttiming() {
                 disabled={isBooked}
                 onClick={() => !isBooked && setSelectedSlot(slot)}
                 className={`border px-4 py-3 rounded text-left transition
-                  ${
-                    isBooked
-                      ? "bg-red-200 text-red-600 cursor-not-allowed"
-                      : selectedSlot === slot
+                  ${isBooked
+                    ? "bg-red-200 text-red-600 cursor-not-allowed"
+                    : selectedSlot === slot
                       ? "bg-indigo-600 text-white border-indigo-600"
                       : "bg-white hover:bg-gray-100"
                   }`}

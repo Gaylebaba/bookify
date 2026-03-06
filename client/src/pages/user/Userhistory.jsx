@@ -105,12 +105,12 @@ function UserHistory() {
         className="fixed inset-0 bg-cover bg-center"
         style={{
           backgroundImage: `url(${stadium})`,
-          
+
         }}
       />
 
       {/* Overlay */}
-     <div className="fixed inset-0 backdrop-blur-xl bg-white/5"></div>
+      <div className="fixed inset-0 backdrop-blur-xl bg-white/5"></div>
 
       {/* Content */}
       <div className="relative z-10 p-10 text-white">
@@ -153,6 +153,9 @@ function UserHistory() {
                 <p><strong>Venue:</strong> {b.venue?.name}</p>
                 <p><strong>Date:</strong> {b.date}</p>
                 <p><strong>Time:</strong> {b.startTime} - {b.endTime}</p>
+                <p>
+                  <strong>Sport:</strong> {b.sport}
+                </p>
 
                 <p>
                   <strong>Status:</strong>{" "}
@@ -161,8 +164,8 @@ function UserHistory() {
                       b.status === "confirmed"
                         ? "text-green-400"
                         : b.status === "cancelled"
-                        ? "text-red-400"
-                        : "text-yellow-400"
+                          ? "text-red-400"
+                          : "text-yellow-400"
                     }
                   >
                     {b.status}

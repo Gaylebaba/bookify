@@ -7,7 +7,7 @@ function Selecttiming() {
   const { id } = useParams();
   const location = useLocation();
   const query = new URLSearchParams(location.search);
-  const sport = query.get("sport");
+  const sport = query.get("sport") || "";
 
   const [venue, setVenue] = useState(null);
   const [selectedDate, setSelectedDate] = useState(
@@ -49,7 +49,7 @@ function Selecttiming() {
               (b) =>
                 b.status === "confirmed" || b.status === "blocked"
             )
-            .map((b) => `${b.startTime} - ${b.endTime}`);
+            .map((b) => `${b.startTime.trim()} - ${b.endTime.trim()}`);
 
           setBookedSlots(blocked);
         }
@@ -59,7 +59,7 @@ function Selecttiming() {
     };
 
     fetchData();
-  }, [id, nav, selectedDate,sport]);
+  }, [id, nav, selectedDate, sport]);
 
   /* ================= SLOT GENERATOR ================= */
 
@@ -196,7 +196,9 @@ function Selecttiming() {
 
         {/* 🔥 Slots */}
         <div className="grid grid-cols-1 gap-4 mb-6">
+
           {slots.map((slot, index) => {
+
             const isBooked = bookedSlots.includes(slot);
 
             return (
@@ -204,18 +206,38 @@ function Selecttiming() {
                 key={index}
                 disabled={isBooked}
                 onClick={() => !isBooked && setSelectedSlot(slot)}
-                className={`border px-4 py-3 rounded text-left transition
-                  ${isBooked
-                    ? "bg-red-200 text-red-600 cursor-not-allowed"
+                className={`border px-4 py-3 rounded-lg text-left transition font-medium
+
+        ${isBooked
+                    ? "bg-red-200 text-red-700 border-red-300 cursor-not-allowed"
                     : selectedSlot === slot
                       ? "bg-indigo-600 text-white border-indigo-600"
-                      : "bg-white hover:bg-gray-100"
+                      : "bg-green-50 hover:bg-green-100 border-green-200"
                   }`}
               >
-                {slot} {isBooked && "(Unavailable)"}
+
+                <div className="flex justify-between items-center">
+
+                  <span>{slot}</span>
+
+                  {isBooked && (
+                    <span className="text-sm font-semibold">
+                      Booked
+                    </span>
+                  )}
+
+                  {!isBooked && selectedSlot === slot && (
+                    <span className="text-sm font-semibold">
+                      Selected
+                    </span>
+                  )}
+
+                </div>
+
               </button>
             );
           })}
+
         </div>
 
         <button

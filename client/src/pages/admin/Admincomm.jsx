@@ -107,7 +107,7 @@ function Admincomm() {
           </div>
 
           {/* Booking Table */}
-          {confirmed.length === 0 ? (
+          {/* {confirmed.length === 0 ? (
             <p className="text-purple-200">No confirmed bookings</p>
           ) : (
             <div className="bg-[#4c1d95] rounded-xl shadow-lg overflow-x-auto">
@@ -139,7 +139,7 @@ function Admincomm() {
 
               </table>
             </div>
-          )}
+          )} */}
         </>
       )}
 

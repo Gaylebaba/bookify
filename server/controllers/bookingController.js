@@ -210,9 +210,9 @@ export const getOwnerAnalytics = async (req, res) => {
 
 export const blockSlot = async (req, res) => {
   try {
-    const { venueId, date, startTime, endTime } = req.body;
+    const { venueId,sport,date, startTime, endTime } = req.body;
 
-    if (!venueId || !date || !startTime || !endTime) {
+    if  (!venueId || !sport || !date || !startTime || !endTime) {
       return res.status(400).json({
         message: "All fields required",
       });
@@ -237,6 +237,7 @@ export const blockSlot = async (req, res) => {
     const existing = await Booking.findOne({
       venue: venueId,
       date,
+      sport,
       startTime,
       endTime,
       status: { $in: ["confirmed", "blocked"] },
@@ -252,6 +253,7 @@ export const blockSlot = async (req, res) => {
       venue: venueId,
       user: req.user._id,
       date,
+      sport,
       startTime,
       endTime,
       amount: 0,
@@ -277,12 +279,25 @@ export const getVenueBookingsByDate = async (req, res) => {
 
     const { date, sport } = req.query;
 
-    const bookings = await Booking.find({
-      venue: req.params.id,
-      date: date,
-      sport: sport,
-      status: { $in: ["confirmed", "blocked"] }
-    });
+    const filter = {
+      venue: req.params.id
+    };
+
+    // apply filters only if provided
+    if (date) {
+      filter.date = date;
+    }
+
+    if (sport) {
+      filter.sport = sport;
+    }
+
+    // Only return slots that block booking
+    filter.status = { $in: ["confirmed", "blocked"] };
+
+    const bookings = await Booking.find(filter)
+      .populate("user", "name email")
+      .sort({ date: -1 });
 
     res.json(bookings);
 

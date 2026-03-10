@@ -72,6 +72,7 @@ function Adminbookmanage() {
               <tr>
                 <th className="p-4">User</th>
                 <th className="p-4">Venue</th>
+                <th className="p-4">sports</th>
                 <th className="p-4">Date</th>
                 <th className="p-4">Time</th>
                 <th className="p-4">Amount</th>
@@ -92,6 +93,10 @@ function Adminbookmanage() {
 
                   <td className="p-4">
                     {b.venue?.name}
+                  </td>
+
+                  <td className="p-4">
+                    {b.sport}
                   </td>
 
                   <td className="p-4">

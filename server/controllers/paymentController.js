@@ -1,12 +1,70 @@
+import razorpay from "../config/razorpay.js";
+import crypto from "crypto";
 import Booking from "../models/bookings.js";
 
-export const processPayment = async (req, res) => {
+/* ================= CREATE ORDER ================= */
+
+export const createOrder = async (req, res) => {
   try {
+
     const { bookingId } = req.body;
 
-    if (!bookingId) {
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      return res.status(404).json({
+        message: "Booking not found"
+      });
+    }
+
+    const options = {
+      amount: booking.amount * 100,
+      currency: "INR",
+      receipt: booking._id.toString()
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    res.json({
+      order,
+      key: process.env.RAZORPAY_KEY_ID
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
+};
+
+
+/* ================= VERIFY PAYMENT ================= */
+
+export const verifyPayment = async (req, res) => {
+
+  try {
+
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      bookingId
+    } = req.body;
+
+    const crypto = await import("crypto");
+
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_SECRET)
+      .update(body)
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
       return res.status(400).json({
-        message: "Booking ID is required",
+        message: "Payment verification failed"
       });
     }
 
@@ -14,39 +72,30 @@ export const processPayment = async (req, res) => {
 
     if (!booking) {
       return res.status(404).json({
-        message: "Booking not found",
+        message: "Booking not found"
       });
     }
 
-    // 🔐 Only booking owner can pay
-    if (booking.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        message: "Not authorized to pay for this booking",
-      });
-    }
+    /* ================= CALCULATE COMMISSION ================= */
 
-    if (booking.status !== "pending") {
-      return res.status(400).json({
-        message: "Booking already processed",
-      });
-    }
+    const commissionRate = 0.03; // 3%
 
-    // 💰 Commission calculation (3% for now)
-    const commissionRate = 0.03;
     booking.commission = booking.amount * commissionRate;
 
     booking.status = "confirmed";
 
     await booking.save();
 
-    res.status(200).json({
-      message: "Payment successful",
-      booking,
+    res.json({
+      message: "Payment verified successfully"
     });
 
   } catch (error) {
+
     res.status(500).json({
-      message: error.message,
+      message: error.message
     });
+
   }
+
 };

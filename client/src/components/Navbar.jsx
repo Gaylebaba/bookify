@@ -15,7 +15,7 @@ function Navbar() {
             <div className="hidden md:flex gap-8 text-sm font-medium">
                 <span className="cursor-pointer hover:text-blue-400">Games</span>
                 <span className="cursor-pointer hover:text-blue-400">Venues</span>
-                <span className="cursor-pointer hover:text-blue-400">Coaches</span>
+                {/* <span className="cursor-pointer hover:text-blue-400">Coaches</span> */}
                 <span className="cursor-pointer hover:text-blue-400">Tournaments</span>
             </div>
              <div className="flex gap-4 items-center">

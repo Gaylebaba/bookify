@@ -1,8 +1,6 @@
 import express from "express";
 import { registerUser, loginUser } from "../controllers/authController.js";
 import { getAllUsers, toggleBlockUser } from "../controllers/userController.js";
-// import UserHistory from "./pages/user/UserHistory";
-
 
 import {
   addVenue,
@@ -13,6 +11,7 @@ import {
   updateVenue,
   getAllVenues
 } from "../controllers/venueController.js";
+
 import {
   addReview,
   getVenueReviews,
@@ -29,7 +28,11 @@ import {
   blockSlot
 } from "../controllers/bookingController.js";
 
-import { processPayment } from "../controllers/paymentController.js";
+import {
+  createOrder,
+  verifyPayment
+} from "../controllers/paymentController.js";
+
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -47,7 +50,7 @@ router.post("/venue", protect, authorize("owner"), addVenue);
 // Owner get his venues
 router.get("/owner/venues", protect, authorize("owner"), getOwnerVenues);
 
-// Get all approved venues (public)
+// Get all approved venues
 router.get("/venues", getApprovedVenues);
 
 // Get single venue
@@ -59,12 +62,8 @@ router.put("/venues/:id", protect, authorize("owner"), updateVenue);
 // Admin approve venue
 router.put("/admin/approve/:id", protect, authorize("admin"), approveVenue);
 
-router.get(
-  "/venue/all",
-  protect,
-  authorize("admin"),
-  getAllVenues
-);
+// Admin get all venues
+router.get("/venue/all", protect, authorize("admin"), getAllVenues);
 
 
 /* ================= BOOKINGS ================= */
@@ -87,10 +86,32 @@ router.post("/owner/block-slot", protect, authorize("owner"), blockSlot);
 // Owner analytics
 router.get("/owner/analytics", protect, authorize("owner"), getOwnerAnalytics);
 
+// Owner venue bookings
+router.get(
+  "/owner/venue/:id/bookings",
+  protect,
+  authorize("owner"),
+  getVenueBookingsByDate
+);
+
 
 /* ================= PAYMENT ================= */
 
-router.post("/payment", protect, authorize("enduser"), processPayment);
+// Create Razorpay Order
+router.post(
+  "/payment/order",
+  protect,
+  authorize("enduser"),
+  createOrder
+);
+
+// Verify Razorpay Payment
+router.post(
+  "/payment/verify",
+  protect,
+  authorize("enduser"),
+  verifyPayment
+);
 
 
 /* ================= ADMIN USERS ================= */
@@ -103,13 +124,9 @@ router.put(
   authorize("admin"),
   toggleBlockUser
 );
-router.get(
-  "/owner/venue/:id/bookings",
-  protect,
-  authorize("owner"),
-  getVenueBookingsByDate
-);
-/* ===== REVIEWS ===== */
+
+
+/* ================= REVIEWS ================= */
 
 router.post(
   "/review",
@@ -129,6 +146,7 @@ router.get(
   authorize("enduser"),
   checkReviewStatus
 );
+
 router.get(
   "/user/history",
   protect,

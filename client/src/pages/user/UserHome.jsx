@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import stadium from "../../assets/images/stadium.jpg";
+import UserNavbar from "../../components/UserNavbar";
+import { Calendar, MapPin, Clock, IndianRupee } from "lucide-react";
 
 function UserHome() {
 
@@ -10,10 +12,10 @@ function UserHome() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+
     const loggeduser = JSON.parse(localStorage.getItem("loggeduser"));
     const token = localStorage.getItem("token");
 
-    // 🔐 Role Protection
     if (!loggeduser || !token || loggeduser.role !== "enduser") {
       nav("/login");
       return;
@@ -23,6 +25,7 @@ function UserHome() {
 
     const fetchBookings = async () => {
       try {
+
         const res = await fetch(
           "http://localhost:5000/api/auth/user/bookings",
           {
@@ -57,130 +60,162 @@ function UserHome() {
 
   }, [nav]);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("loggeduser");
-    nav("/login");
-  };
-
   if (!user) return null;
 
   return (
-    <div
-      className="min-h-screen bg-cover bg-center relative"
-      style={{ backgroundImage: `url(${stadium})` }}
-    >
-      <div className="absolute inset-0 bg-black/60"></div>
 
-      <div className="relative z-10 p-10 text-white">
+    <div className="min-h-screen bg-gray-50">
 
-        {/* Header */}
-        <div className="flex justify-between items-start mb-12">
+      <UserNavbar />
 
-          {/* Left Section */}
-          <div>
-            <h1 className="text-4xl font-bold mb-2">
-              Welcome, {user.name}
-            </h1>
+      {/* HERO SECTION */}
 
-            <p className="text-lg text-gray-200 mb-6">
-              Ready to book your next game?
-            </p>
+      <div
+        className="relative h-[260px] bg-cover bg-center"
+        style={{ backgroundImage: `url(${stadium})` }}
+      >
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-            {/* Buttons Section */}
-            <div className="flex flex-wrap gap-4">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 text-white">
 
-              <button
-                onClick={() => nav("/venues")}
-                className="bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-xl text-lg font-semibold shadow-lg transition"
-              >
-                Browse Venues
-              </button>
+          <h1 className="text-4xl font-bold mb-2">
+            Welcome back, {user.name}
+          </h1>
 
-              <button
-                onClick={() => nav("/user/history")}
-                className="bg-gray-800 hover:bg-gray-700 px-8 py-3 rounded-xl text-lg font-semibold shadow-lg transition"
-              >
-                View Booking History
-              </button>
+          <p className="text-gray-200">
+            Ready to book your next game?
+          </p>
 
-            </div>
-          </div>
+        </div>
+      </div>
 
-          {/* Logout Button */}
-          <button
-            onClick={logout}
-            className="bg-red-600 hover:bg-red-500 px-5 py-2 rounded-lg font-semibold shadow-md transition"
+
+      {/* QUICK ACTIONS */}
+
+      <div className="max-w-7xl mx-auto px-6 -mt-12 mb-12">
+
+        <div className="grid md:grid-cols-2 gap-6">
+
+          <div
+            onClick={() => nav("/venues")}
+            className="bg-white p-8 rounded-xl shadow hover:shadow-lg cursor-pointer transition"
           >
-            Logout
-          </button>
+            <h3 className="text-xl font-semibold mb-2">
+              Browse Venues
+            </h3>
 
-        </div>
-
-        {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-            <p className="text-sm text-gray-300">User Email</p>
-            <p className="text-lg font-semibold">{user.email}</p>
+            <p className="text-gray-500">
+              Explore available sports venues and book instantly.
+            </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-            <p className="text-sm text-gray-300">Role</p>
-            <p className="text-lg font-semibold">End User</p>
-          </div>
+          <div
+            onClick={() => nav("/user/history")}
+            className="bg-white p-8 rounded-xl shadow hover:shadow-lg cursor-pointer transition"
+          >
+            <h3 className="text-xl font-semibold mb-2">
+              Booking History
+            </h3>
 
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-            <p className="text-sm text-gray-300">Account Status</p>
-            <p className="text-lg font-semibold text-green-400">
-              Active
+            <p className="text-gray-500">
+              View all your previous and upcoming bookings.
             </p>
           </div>
 
         </div>
 
-        {/* Last Booking */}
-        <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-xl max-w-3xl">
-          <h2 className="text-xl font-semibold mb-4">
+      </div>
+
+
+      {/* USER INFO CARDS */}
+
+      <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-6 mb-12">
+
+        <div className="bg-white p-6 rounded-xl shadow">
+          <p className="text-sm text-gray-500">Email</p>
+          <p className="text-lg font-semibold">{user.email}</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow">
+          <p className="text-sm text-gray-500">Role</p>
+          <p className="text-lg font-semibold">End User</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow">
+          <p className="text-sm text-gray-500">Account Status</p>
+          <p className="text-lg font-semibold text-green-600">Active</p>
+        </div>
+
+      </div>
+
+
+      {/* LAST BOOKING */}
+
+      <div className="max-w-7xl mx-auto px-6 pb-16">
+
+        <div className="bg-white rounded-xl shadow p-8">
+
+          <h2 className="text-2xl font-bold mb-6">
             Last Booking
           </h2>
 
           {loading ? (
-            <p className="text-gray-300">Loading booking...</p>
+
+            <p className="text-gray-500">Loading booking...</p>
+
           ) : lastBooking ? (
-            <div className="space-y-2 text-gray-200">
-              <p><strong>Venue:</strong> {lastBooking.venue?.name}</p>
-              <p><strong>Date:</strong> {lastBooking.date}</p>
-              <p>
-                <strong>Time:</strong> {lastBooking.startTime} - {lastBooking.endTime}
-              </p>
-              <p>
+
+            <div className="grid md:grid-cols-2 gap-6 text-gray-700">
+
+              <div className="flex items-center gap-3">
+                <MapPin size={18} />
+                <span><strong>Venue:</strong> {lastBooking.venue?.name}</span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Calendar size={18} />
+                <span><strong>Date:</strong> {lastBooking.date}</span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Clock size={18} />
+                <span>
+                  <strong>Time:</strong> {lastBooking.startTime} - {lastBooking.endTime}
+                </span>
+              </div>
+
+              <div>
                 <strong>Status:</strong>{" "}
                 <span
                   className={
                     lastBooking.status === "cancelled"
-                      ? "text-red-400"
+                      ? "text-red-500"
                       : lastBooking.status === "confirmed"
-                      ? "text-green-400"
-                      : "text-yellow-400"
+                      ? "text-green-600"
+                      : "text-yellow-500"
                   }
                 >
                   {lastBooking.status}
                 </span>
-              </p>
-              <p>
-                <strong>Amount:</strong> ₹ {lastBooking.amount}
-              </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <IndianRupee size={18} />
+                <span><strong>Amount:</strong> {lastBooking.amount}</span>
+              </div>
+
             </div>
+
           ) : (
-            <p className="text-gray-300">
-              No booking history found.
-            </p>
+
+            <p className="text-gray-500">No booking history found.</p>
+
           )}
 
         </div>
 
       </div>
+
     </div>
   );
 }

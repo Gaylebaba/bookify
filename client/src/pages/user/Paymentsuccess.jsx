@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { light } from "../../assets";
 
 function Paymentsuccess() {
 
@@ -8,7 +7,6 @@ function Paymentsuccess() {
 
   useEffect(() => {
 
-    // optional auto redirect after few seconds
     const timer = setTimeout(() => {
       nav("/home");
     }, 5000);
@@ -17,57 +15,131 @@ function Paymentsuccess() {
 
   }, [nav]);
 
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("loggeduser");
+    nav("/login");
+  };
+
+
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-6">
 
-      {/* Background */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${light})`,
-          filter: "blur(6px)",
-          transform: "scale(1.05)",
-        }}
-      />
+    <div className="min-h-screen bg-gray-100">
 
-      <div className="absolute inset-0 bg-black/60"></div>
+      {/* NAVBAR */}
 
-      <div className="relative z-10 bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 text-center">
+      <div className="bg-white shadow-sm">
 
-        <h1 className="text-3xl font-bold text-green-600 mb-4">
-          Payment Successful 🎉
-        </h1>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-        <p className="text-gray-600 mb-6">
-          Your booking has been confirmed successfully.
-        </p>
-
-        <div className="flex flex-col gap-3">
-
-          <button
+          <h1
             onClick={() => nav("/home")}
-            className="w-full bg-indigo-600 text-white py-3 rounded font-semibold hover:bg-indigo-700 transition"
+            className="text-2xl font-bold text-indigo-600 cursor-pointer"
           >
-            Go to Home
-          </button>
+            Bookify
+          </h1>
 
-          <button
-            onClick={() => nav("/user/history")}
-            className="w-full bg-gray-200 text-gray-800 py-3 rounded font-semibold hover:bg-gray-300 transition"
-          >
-            View Booking History
-          </button>
+          <div className="flex items-center gap-6">
+
+            <button
+              onClick={() => nav("/home")}
+              className="text-gray-700 hover:text-indigo-600"
+            >
+              Home
+            </button>
+
+            <button
+              onClick={() => nav("/venues")}
+              className="text-gray-700 hover:text-indigo-600"
+            >
+              Browse Venues
+            </button>
+
+            <button
+              onClick={() => nav("/user/history")}
+              className="text-gray-700 hover:text-indigo-600"
+            >
+              My Bookings
+            </button>
+
+            <button
+              onClick={logout}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg"
+            >
+              Logout
+            </button>
+
+          </div>
 
         </div>
 
-        <p className="text-sm text-gray-400 mt-4">
-          Redirecting to home in 5 seconds...
-        </p>
+      </div>
+
+
+      {/* SUCCESS PAGE */}
+
+      <div className="flex items-center justify-center py-24 px-6">
+
+        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-10 text-center">
+
+          {/* SUCCESS ICON */}
+
+          <div className="flex justify-center mb-6">
+
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+
+              <span className="text-3xl text-green-600">
+                ✓
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <h1 className="text-3xl font-bold text-gray-800 mb-3">
+            Payment Successful
+          </h1>
+
+          <p className="text-gray-600 mb-8">
+            Your venue booking has been confirmed successfully.
+          </p>
+
+
+          {/* ACTION BUTTONS */}
+
+          <div className="flex flex-col gap-3">
+
+            <button
+              onClick={() => nav("/home")}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold transition"
+            >
+              Go to Home
+            </button>
+
+            <button
+              onClick={() => nav("/user/history")}
+              className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-lg font-semibold transition"
+            >
+              View Booking History
+            </button>
+
+          </div>
+
+
+          <p className="text-sm text-gray-400 mt-6">
+            Redirecting to home in 5 seconds...
+          </p>
+
+        </div>
 
       </div>
 
     </div>
+
   );
+
 }
 
 export default Paymentsuccess;

@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useState, useEffect,} from "react";
-import { light } from "../../assets";
+import { useState, useEffect } from "react";
+import OwnerNavbar from "../../components/OwnerNavbar";
 
 function OwnersetSlot() {
 
@@ -16,20 +16,14 @@ function OwnersetSlot() {
   const [bookedSlots, setBookedSlots] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  /* ================= AUTH + FETCH VENUE ================= */
+  /* FETCH VENUE */
 
   useEffect(() => {
 
-    const loggeduser = JSON.parse(localStorage.getItem("loggeduser"));
-    const token = localStorage.getItem("token");
-
-    if (!loggeduser || !token || loggeduser.role !== "owner") {
-      nav("/login");
-      return;
-    }
-
     const fetchVenue = async () => {
+
       try {
+
         const res = await fetch(
           `http://localhost:5000/api/auth/venues/${id}`
         );
@@ -37,85 +31,45 @@ function OwnersetSlot() {
         const data = await res.json();
         setVenue(data);
 
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        console.error(err);
       }
+
     };
 
     fetchVenue();
 
-  }, [id, nav]);
+  }, [id]);
 
-  /* ================= FETCH BOOKINGS ================= */
 
-  const fetchBookings =async () => {
 
-    if (!selectedSport) return;
-
-    try {
-
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(
-        `http://localhost:5000/api/auth/owner/venue/${id}/bookings`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      const data = await res.json();
-
-      if (res.ok) {
-
-        const takenSlots = data
-          .filter(
-            (b) =>
-              b.date === selectedDate &&
-              b.sport === selectedSport &&
-              (b.status === "confirmed" || b.status === "blocked")
-          )
-          .map((b) => `${b.startTime} - ${b.endTime}`);
-
-        setBookedSlots(takenSlots);
-      }
-
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchBookings();
-  }, [selectedDate, selectedSport, id]);
-
-  /* ================= SLOT GENERATOR ================= */
+  /* SLOT GENERATOR */
 
   const generateSlots = (start, end) => {
 
     const slots = [];
 
-    const toMinutes = (time) => {
-      const [h, m] = time.split(":").map(Number);
-      return h * 60 + m;
+    const toMinutes = (time)=>{
+      const [h,m]=time.split(":").map(Number);
+      return h*60+m;
     };
 
-    const toTimeString = (minutes) => {
-      const h = Math.floor(minutes / 60);
-      const m = minutes % 60;
-      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    const toTimeString = (minutes)=>{
+      const h=Math.floor(minutes/60);
+      const m=minutes%60;
+      return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
     };
 
     let current = toMinutes(start);
     const endMinutes = toMinutes(end);
 
-    while (current + 60 <= endMinutes) {
-      slots.push(
-        `${toTimeString(current)} - ${toTimeString(current + 60)}`
-      );
-      current += 60;
+    while(current+60<=endMinutes){
+      slots.push(`${toTimeString(current)} - ${toTimeString(current+60)}`);
+      current+=60;
     }
 
     return slots;
+
   };
 
   const slots =
@@ -126,179 +80,205 @@ function OwnersetSlot() {
   const sportsList =
     venue && venue.sports ? venue.sports.split(",") : [];
 
-  /* ================= BLOCK SLOT ================= */
+
+
+  /* BLOCK SLOT */
 
   const handleBlockSlot = async () => {
 
-    if (!selectedSport) {
-      alert("Please select sport first");
+    if(!selectedSport){
+      alert("Select sport first");
       return;
     }
 
-    if (!selectedSlot) {
-      alert("Please select a slot");
+    if(!selectedSlot){
+      alert("Select slot");
       return;
     }
 
     const token = localStorage.getItem("token");
-    const [startTime, endTime] = selectedSlot.split(" - ");
+    const [startTime,endTime] = selectedSlot.split(" - ");
 
     setLoading(true);
 
-    try {
+    try{
 
       const res = await fetch(
         "http://localhost:5000/api/auth/owner/block-slot",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            Authorization:`Bearer ${token}`
           },
-          body: JSON.stringify({
-            venueId: id,
-            sport: selectedSport,
-            date: selectedDate,
+          body:JSON.stringify({
+            venueId:id,
+            sport:selectedSport,
+            date:selectedDate,
             startTime,
             endTime
           })
         }
       );
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message);
-        setLoading(false);
+      if(!res.ok){
+        alert("Failed to block slot");
         return;
       }
 
-      alert("Slot blocked successfully");
+      alert("Slot blocked");
 
-      setSelectedSlot("");
-      fetchBookings();
-
-    } catch (error) {
-      alert("Something went wrong");
+    }catch{
+      alert("Error");
     }
 
     setLoading(false);
+
   };
 
-  return (
-    <div className="relative min-h-screen flex items-center justify-center p-6">
 
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${light})`,
-          filter: "blur(6px)",
-          transform: "scale(1.05)"
-        }}
-      />
 
-      <div className="absolute inset-0 bg-black/60"></div>
+  return(
 
-      <div className="relative z-10 w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8">
+    <div className="min-h-screen bg-gray-50">
 
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">
-          Block Slot (Owner)
+      <OwnerNavbar/>
+
+
+      {/* HEADER */}
+
+      <div className="max-w-6xl mx-auto px-6 pt-8">
+
+        <h1 className="text-2xl font-semibold text-gray-800">
+          Slot Management
         </h1>
 
         {venue && (
-          <div className="mb-4">
+          <p className="text-gray-500 text-sm mt-1">
+            Venue: {venue.name}
+          </p>
+        )}
 
-            <p className="text-gray-600">
-              <strong>Venue:</strong> {venue.name}
-            </p>
+      </div>
 
-            <div className="mt-3">
 
-              <p className="text-sm text-gray-700 mb-1">
-                <strong>Select Sport</strong>
-              </p>
 
-              <div className="flex gap-2 flex-wrap">
+      {/* MAIN CARD */}
 
-                {sportsList.map((s, i) => (
+      <div className="max-w-5xl mx-auto px-6 py-8">
 
-                  <button
-                    key={i}
-                    onClick={() => {
-                      setSelectedSport(s);
-                      setSelectedSlot("");
-                    }}
-                    className={`px-3 py-1 rounded-lg border text-sm transition
-                    ${selectedSport === s
-                        ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-gray-100"
-                      }`}
-                  >
-                    {s}
-                  </button>
+        <div className="bg-white rounded-xl shadow border p-8 space-y-6">
 
-                ))}
+          {/* SPORT SELECT */}
 
-              </div>
+          <div>
+
+            <h2 className="text-sm font-semibold text-gray-700 mb-3">
+              Select Sport
+            </h2>
+
+            <div className="flex gap-3 flex-wrap">
+
+              {sportsList.map((s,i)=>(
+                <button
+                  key={i}
+                  onClick={()=>setSelectedSport(s)}
+                  className={`px-4 py-2 rounded-lg border text-sm transition
+                  ${
+                    selectedSport===s
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-gray-100 hover:bg-gray-200"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
 
             </div>
 
           </div>
-        )}
 
-        <label className="block text-sm text-gray-700 mb-1">
-          Select Date
-        </label>
 
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => {
-            setSelectedDate(e.target.value);
-            setSelectedSlot("");
-          }}
-          className="w-full border p-2.5 rounded-lg mb-6"
-        />
 
-        <div className="grid grid-cols-1 gap-4 mb-6">
+          {/* DATE */}
 
-          {slots.map((slot, index) => {
+          <div>
 
-            const isBooked = bookedSlots.includes(slot);
+            <h2 className="text-sm font-semibold text-gray-700 mb-2">
+              Select Date
+            </h2>
 
-            return (
-              <button
-                key={index}
-                disabled={isBooked || !selectedSport}
-                onClick={() => !isBooked && setSelectedSlot(slot)}
-                className={`border px-4 py-3 rounded text-left transition
-                ${isBooked
-                    ? "bg-red-200 text-red-600 cursor-not-allowed"
-                    : selectedSlot === slot
-                      ? "bg-indigo-600 text-white border-indigo-600"
-                      : "bg-white hover:bg-gray-100"
-                  }`}
-              >
-                {slot} {isBooked && "(Unavailable)"}
-              </button>
-            );
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e)=>setSelectedDate(e.target.value)}
+              className="border rounded-lg px-3 py-2"
+            />
 
-          })}
+          </div>
+
+
+
+          {/* SLOTS */}
+
+          <div>
+
+            <h2 className="text-sm font-semibold text-gray-700 mb-3">
+              Available Slots
+            </h2>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+              {slots.map((slot,index)=>{
+
+                const isBooked = bookedSlots.includes(slot);
+
+                return(
+
+                  <button
+                    key={index}
+                    disabled={isBooked}
+                    onClick={()=>setSelectedSlot(slot)}
+                    className={`py-3 rounded-lg border text-sm font-medium transition
+                    ${
+                      isBooked
+                        ? "bg-red-100 text-red-600"
+                        : selectedSlot===slot
+                        ? "bg-indigo-600 text-white"
+                        : "bg-gray-50 hover:bg-gray-100"
+                    }`}
+                  >
+                    {slot}
+                  </button>
+
+                );
+
+              })}
+
+            </div>
+
+          </div>
+
+
+
+          {/* ACTION BUTTON */}
+
+          <button
+            onClick={handleBlockSlot}
+            disabled={loading}
+            className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
+          >
+            {loading ? "Processing..." : "Block Selected Slot"}
+          </button>
 
         </div>
-
-        <button
-          onClick={handleBlockSlot}
-          disabled={loading}
-          className="w-full bg-red-600 text-white py-3 rounded font-semibold hover:bg-red-700 transition"
-        >
-          {loading ? "Processing..." : "Block Slot"}
-        </button>
 
       </div>
 
     </div>
+
   );
+
 }
 
 export default OwnersetSlot;

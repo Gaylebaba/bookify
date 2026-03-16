@@ -1,8 +1,8 @@
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { light } from "../../assets";
 
 function Selecttiming() {
+
   const nav = useNavigate();
   const { id } = useParams();
   const location = useLocation();
@@ -20,6 +20,7 @@ function Selecttiming() {
   /* ================= AUTH + FETCH ================= */
 
   useEffect(() => {
+
     const loggeduser = JSON.parse(localStorage.getItem("loggeduser"));
     const token = localStorage.getItem("token");
 
@@ -29,21 +30,24 @@ function Selecttiming() {
     }
 
     const fetchData = async () => {
+
       try {
-        // Fetch venue details
+
         const venueRes = await fetch(
           `http://localhost:5000/api/auth/venues/${id}`
         );
+
         const venueData = await venueRes.json();
         setVenue(venueData);
 
-        // Fetch bookings for selected date
         const bookingRes = await fetch(
           `http://localhost:5000/api/auth/venue/${id}/bookings?date=${selectedDate}&sport=${sport}`
         );
+
         const bookingData = await bookingRes.json();
 
         if (bookingRes.ok) {
+
           const blocked = bookingData
             .filter(
               (b) =>
@@ -52,18 +56,24 @@ function Selecttiming() {
             .map((b) => `${b.startTime.trim()} - ${b.endTime.trim()}`);
 
           setBookedSlots(blocked);
+
         }
+
       } catch (error) {
         console.error(error);
       }
+
     };
 
     fetchData();
+
   }, [id, nav, selectedDate, sport]);
+
 
   /* ================= SLOT GENERATOR ================= */
 
   const generateSlots = (start, end) => {
+
     const slots = [];
 
     const toMinutes = (time) => {
@@ -81,13 +91,17 @@ function Selecttiming() {
     const endMinutes = toMinutes(end);
 
     while (current + 60 <= endMinutes) {
+
       slots.push(
         `${toTimeString(current)} - ${toTimeString(current + 60)}`
       );
+
       current += 60;
+
     }
 
     return slots;
+
   };
 
   const slots =
@@ -95,9 +109,11 @@ function Selecttiming() {
       ? generateSlots(venue.opentime, venue.closetime)
       : [];
 
-  /* ================= HANDLE BOOKING ================= */
+
+  /* ================= BOOKING ================= */
 
   const handleBooking = async () => {
+
     if (!selectedSlot) {
       alert("Please select a slot");
       return;
@@ -109,6 +125,7 @@ function Selecttiming() {
     setLoading(true);
 
     try {
+
       const res = await fetch(
         "http://localhost:5000/api/auth/booking",
         {
@@ -119,7 +136,7 @@ function Selecttiming() {
           },
           body: JSON.stringify({
             venueId: id,
-            sport: sport,
+            sport,
             date: selectedDate,
             startTime,
             endTime,
@@ -136,87 +153,155 @@ function Selecttiming() {
       }
 
       nav(`/payments/${data.booking._id}`);
+
     } catch (error) {
       alert("Something went wrong");
     }
 
     setLoading(false);
+
   };
 
-  /* ================= UI ================= */
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("loggeduser");
+    nav("/login");
+  };
+
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center p-6">
-      {/* Background */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${light})`,
-          filter: "blur(6px)",
-          transform: "scale(1.05)",
-        }}
-      />
-      <div className="absolute inset-0 bg-black/60"></div>
 
-      <div className="relative z-10 w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8">
+    <div className="min-h-screen bg-gray-100">
 
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">
+      {/* NAVBAR */}
+
+      <div className="bg-white shadow-sm">
+
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+          <h1
+            onClick={() => nav("/home")}
+            className="text-2xl font-bold text-indigo-600 cursor-pointer"
+          >
+            Bookify
+          </h1>
+
+          <div className="flex items-center gap-6">
+
+            <button
+              onClick={() => nav("/home")}
+              className="text-gray-700 hover:text-indigo-600"
+            >
+              Home
+            </button>
+
+            <button
+              onClick={() => nav("/venues")}
+              className="text-gray-700 hover:text-indigo-600"
+            >
+              Browse Venues
+            </button>
+
+            <button
+              onClick={() => nav("/user/history")}
+              className="text-gray-700 hover:text-indigo-600"
+            >
+              My Bookings
+            </button>
+
+            <button
+              onClick={logout}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg"
+            >
+              Logout
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      {/* CONTENT */}
+
+      <div className="max-w-3xl mx-auto px-6 py-10">
+
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">
           Select Date & Time
         </h1>
 
+        {/* VENUE INFO */}
+
         {venue && (
-          <div className="mb-4">
-            <p className="text-gray-600">
+
+          <div className="bg-white p-6 rounded-xl shadow mb-6">
+
+            <p className="text-gray-700">
               <strong>Venue:</strong> {venue.name}
             </p>
-            <p className="text-blue-600 font-semibold">
+
+            <p className="text-indigo-600 font-semibold">
               Sport: {sport}
             </p>
+
             <p className="text-green-600 font-semibold">
               ₹ {venue.price} / hour
             </p>
+
           </div>
+
         )}
 
-        {/* 🔥 Date Picker */}
-        <label className="block text-sm text-gray-700 mb-1">
-          Select Date
-        </label>
 
-        <input
-          type="date"
-          value={selectedDate}
-          min={new Date().toISOString().split("T")[0]}
-          onChange={(e) => {
-            setSelectedDate(e.target.value);
-            setSelectedSlot("");
-          }}
-          className="w-full border p-2.5 rounded-lg mb-6"
-        />
+        {/* DATE */}
 
-        {/* 🔥 Slots */}
-        <div className="grid grid-cols-1 gap-4 mb-6">
+        <div className="bg-white p-6 rounded-xl shadow mb-6">
+
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select Date
+          </label>
+
+          <input
+            type="date"
+            value={selectedDate}
+            min={new Date().toISOString().split("T")[0]}
+            onChange={(e) => {
+              setSelectedDate(e.target.value);
+              setSelectedSlot("");
+            }}
+            className="border rounded-lg px-3 py-2 w-full"
+          />
+
+        </div>
+
+
+        {/* SLOTS */}
+
+        <div className="grid grid-cols-2 gap-4 mb-8">
 
           {slots.map((slot, index) => {
 
             const isBooked = bookedSlots.includes(slot);
 
             return (
+
               <button
                 key={index}
                 disabled={isBooked}
                 onClick={() => !isBooked && setSelectedSlot(slot)}
-                className={`border px-4 py-3 rounded-lg text-left transition font-medium
+                className={`p-4 rounded-lg border text-left transition font-medium
 
-        ${isBooked
-                    ? "bg-red-200 text-red-700 border-red-300 cursor-not-allowed"
+                ${isBooked
+                    ? "bg-red-100 border-red-300 text-red-600 cursor-not-allowed"
                     : selectedSlot === slot
                       ? "bg-indigo-600 text-white border-indigo-600"
-                      : "bg-green-50 hover:bg-green-100 border-green-200"
+                      : "bg-white hover:border-indigo-400"
                   }`}
               >
 
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between">
 
                   <span>{slot}</span>
 
@@ -235,22 +320,30 @@ function Selecttiming() {
                 </div>
 
               </button>
+
             );
+
           })}
 
         </div>
 
+
+        {/* CONTINUE */}
+
         <button
           onClick={handleBooking}
           disabled={loading}
-          className="w-full bg-green-600 text-white py-3 rounded font-semibold hover:bg-green-700 transition"
+          className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700"
         >
           {loading ? "Processing..." : "Continue to Payment"}
         </button>
 
       </div>
+
     </div>
+
   );
+
 }
 
 export default Selecttiming;

@@ -1,150 +1,208 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import AdminNavbar from "../../components/AdminNavbar";
 
 function Admincomm() {
 
   const nav = useNavigate();
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const [bookings,setBookings] = useState([]);
+  const [loading,setLoading] = useState(true);
+
+  useEffect(()=>{
 
     const token = localStorage.getItem("token");
     const logged = JSON.parse(localStorage.getItem("loggeduser"));
 
-    if (!token || !logged || logged.role !== "admin") {
+    if(!token || !logged || logged.role !== "admin"){
       nav("/login");
       return;
     }
 
-    const fetchBookings = async () => {
-      try {
+    const fetchBookings = async ()=>{
 
-        const res = await fetch(
-          "http://localhost:5000/api/auth/admin/bookings",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
+      const res = await fetch(
+        "http://localhost:5000/api/auth/admin/bookings",
+        {
+          headers:{
+            Authorization:`Bearer ${token}`
           }
-        );
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          alert("Failed to fetch bookings");
-          return;
         }
+      );
 
-        setBookings(data);
-
-      } catch (error) {
-        console.error(error);
-      }
-
+      const data = await res.json();
+      setBookings(data);
       setLoading(false);
+
     };
 
     fetchBookings();
 
-  }, [nav]);
+  },[nav]);
 
-  // Only confirmed bookings count for revenue
+
   const confirmed = bookings.filter(b => b.status === "confirmed");
 
   const totalRevenue = confirmed.reduce(
-    (sum, b) => sum + b.amount,
-    0
+    (sum,b)=>sum + b.amount,0
   );
 
   const totalCommission = confirmed.reduce(
-    (sum, b) => sum + b.commission,
-    0
+    (sum,b)=>sum + b.commission,0
   );
 
-  return (
-    <div className="min-h-screen bg-[#3b0764] p-10 text-white">
 
-      <h1 className="text-4xl font-bold mb-12">
-        Commission Analytics
-      </h1>
+  return(
 
-      {loading ? (
-        <p>Loading data...</p>
-      ) : (
+    <div className="min-h-screen bg-gray-50">
 
-        <>
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+      <AdminNavbar/>
 
-            <div className="bg-[#4c1d95] p-6 rounded-xl shadow-lg">
-              <p className="text-sm text-purple-200">
+      <div className="max-w-7xl mx-auto px-8 py-8">
+
+        {/* HEADER */}
+
+        <h1 className="text-2xl font-semibold text-gray-800">
+          Commission Analytics
+        </h1>
+
+        <p className="text-gray-500 text-sm mt-1 mb-8">
+          Platform revenue and commission insights
+        </p>
+
+
+
+        {loading ? (
+
+          <p className="text-gray-500">Loading analytics...</p>
+
+        ) : (
+
+          <>
+          
+          {/* KPI CARDS */}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+
+            <div className="bg-white border rounded-xl p-6 shadow-sm">
+
+              <p className="text-gray-500 text-sm">
                 Total Bookings
               </p>
-              <h2 className="text-3xl font-bold mt-2">
+
+              <h2 className="text-3xl font-bold text-gray-800 mt-2">
                 {confirmed.length}
               </h2>
+
             </div>
 
-            <div className="bg-[#4c1d95] p-6 rounded-xl shadow-lg">
-              <p className="text-sm text-purple-200">
+
+            <div className="bg-white border rounded-xl p-6 shadow-sm">
+
+              <p className="text-gray-500 text-sm">
                 Total Revenue
               </p>
-              <h2 className="text-3xl font-bold mt-2">
+
+              <h2 className="text-3xl font-bold text-indigo-600 mt-2">
                 ₹ {totalRevenue}
               </h2>
+
             </div>
 
-            <div className="bg-[#4c1d95] p-6 rounded-xl shadow-lg">
-              <p className="text-sm text-purple-200">
-                Total Commission (3%)
+
+            <div className="bg-white border rounded-xl p-6 shadow-sm">
+
+              <p className="text-gray-500 text-sm">
+                Platform Commission (3%)
               </p>
-              <h2 className="text-3xl font-bold text-green-400 mt-2">
+
+              <h2 className="text-3xl font-bold text-green-600 mt-2">
                 ₹ {totalCommission}
               </h2>
+
             </div>
 
           </div>
 
-          {/* Booking Table */}
-          {/* {confirmed.length === 0 ? (
-            <p className="text-purple-200">No confirmed bookings</p>
-          ) : (
-            <div className="bg-[#4c1d95] rounded-xl shadow-lg overflow-x-auto">
-              <table className="w-full text-left">
 
-                <thead className="bg-purple-700 text-sm">
-                  <tr>
-                    <th className="p-3">User</th>
-                    <th className="p-3">Venue</th>
-                    <th className="p-3">Amount</th>
-                    <th className="p-3">Commission</th>
-                    <th className="p-3">Date</th>
-                  </tr>
-                </thead>
+          {/* RECENT BOOKINGS TABLE */}
 
-                <tbody>
-                  {confirmed.map((b) => (
-                    <tr key={b._id} className="border-t border-purple-700">
-                      <td className="p-3">{b.user?.name}</td>
-                      <td className="p-3">{b.venue?.name}</td>
-                      <td className="p-3">₹ {b.amount}</td>
-                      <td className="p-3 text-green-400">
-                        ₹ {b.commission}
-                      </td>
-                      <td className="p-3">{b.date}</td>
-                    </tr>
-                  ))}
-                </tbody>
+          <div className="bg-white rounded-xl border shadow-sm overflow-x-auto">
 
-              </table>
+            <div className="p-6 border-b">
+
+              <h2 className="text-lg font-semibold text-gray-800">
+                Revenue Transactions
+              </h2>
+
             </div>
-          )} */}
-        </>
-      )}
+
+            <table className="w-full text-sm text-left">
+
+              <thead className="bg-gray-100 text-gray-600">
+
+                <tr>
+
+                  <th className="p-4">User</th>
+                  <th className="p-4">Venue</th>
+                  <th className="p-4">Date</th>
+                  <th className="p-4">Amount</th>
+                  <th className="p-4">Commission</th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                {confirmed.map((b)=>(
+                  
+                  <tr
+                    key={b._id}
+                    className="border-t hover:bg-gray-50 transition"
+                  >
+
+                    <td className="p-4 font-medium text-gray-800">
+                      {b.user?.name}
+                    </td>
+
+                    <td className="p-4 text-gray-600">
+                      {b.venue?.name}
+                    </td>
+
+                    <td className="p-4 text-gray-600">
+                      {b.date}
+                    </td>
+
+                    <td className="p-4 font-semibold text-gray-800">
+                      ₹ {b.amount}
+                    </td>
+
+                    <td className="p-4 font-semibold text-green-600">
+                      ₹ {b.commission}
+                    </td>
+
+                  </tr>
+
+                ))}
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+          </>
+
+        )}
+
+      </div>
 
     </div>
+
   );
+
 }
 
 export default Admincomm;

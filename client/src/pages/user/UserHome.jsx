@@ -1,8 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import stadium from "../../assets/images/stadium.jpg";
-import UserNavbar from "../../components/UserNavbar";
-import { Calendar, MapPin, Clock, IndianRupee } from "lucide-react";
 
 function UserHome() {
 
@@ -24,6 +22,7 @@ function UserHome() {
     setUser(loggeduser);
 
     const fetchBookings = async () => {
+
       try {
 
         const res = await fetch(
@@ -46,6 +45,7 @@ function UserHome() {
           const sorted = [...data].sort(
             (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
           );
+
           setLastBooking(sorted[0]);
         }
 
@@ -54,72 +54,114 @@ function UserHome() {
       }
 
       setLoading(false);
+
     };
 
     fetchBookings();
 
   }, [nav]);
 
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("loggeduser");
+    nav("/login");
+  };
+
   if (!user) return null;
 
   return (
 
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
 
-      <UserNavbar />
+      {/* NAVBAR */}
 
-      {/* HERO SECTION */}
+      <div className="bg-white shadow">
 
-      <div
-        className="relative h-[260px] bg-cover bg-center"
-        style={{ backgroundImage: `url(${stadium})` }}
-      >
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 text-white">
-
-          <h1 className="text-4xl font-bold mb-2">
-            Welcome back, {user.name}
+          <h1
+            onClick={() => nav("/home")}
+            className="text-2xl font-bold text-indigo-600 cursor-pointer"
+          >
+            Bookify
           </h1>
 
-          <p className="text-gray-200">
+          <div className="flex gap-6 items-center">
+
+            <button
+              onClick={() => nav("/home")}
+              className="text-gray-700 hover:text-indigo-600 font-medium"
+            >
+              Home
+            </button>
+
+            <button
+              onClick={() => nav("/venues")}
+              className="text-gray-700 hover:text-indigo-600 font-medium"
+            >
+              Browse Venues
+            </button>
+
+            <button
+              onClick={() => nav("/user/history")}
+              className="text-gray-700 hover:text-indigo-600 font-medium"
+            >
+              My Bookings
+            </button>
+
+            <button
+              onClick={logout}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+            >
+              Logout
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      {/* HERO */}
+
+      <div
+        className="relative h-[300px] flex items-center justify-center text-center"
+        style={{
+          backgroundImage: `url(${stadium})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center"
+        }}
+      >
+
+        <div className="absolute inset-0 bg-black/60"></div>
+
+        <div className="relative text-white px-6">
+
+          <h1 className="text-4xl font-bold mb-3">
+            Welcome, {user.name}
+          </h1>
+
+          <p className="text-gray-200 mb-6">
             Ready to book your next game?
           </p>
 
-        </div>
-      </div>
+          <div className="flex justify-center gap-4">
 
-
-      {/* QUICK ACTIONS */}
-
-      <div className="max-w-7xl mx-auto px-6 -mt-12 mb-12">
-
-        <div className="grid md:grid-cols-2 gap-6">
-
-          <div
-            onClick={() => nav("/venues")}
-            className="bg-white p-8 rounded-xl shadow hover:shadow-lg cursor-pointer transition"
-          >
-            <h3 className="text-xl font-semibold mb-2">
+            <button
+              onClick={() => nav("/venues")}
+              className="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 rounded-lg font-semibold"
+            >
               Browse Venues
-            </h3>
+            </button>
 
-            <p className="text-gray-500">
-              Explore available sports venues and book instantly.
-            </p>
-          </div>
+            <button
+              onClick={() => nav("/user/history")}
+              className="bg-gray-800 hover:bg-gray-700 px-6 py-3 rounded-lg font-semibold"
+            >
+              View Booking History
+            </button>
 
-          <div
-            onClick={() => nav("/user/history")}
-            className="bg-white p-8 rounded-xl shadow hover:shadow-lg cursor-pointer transition"
-          >
-            <h3 className="text-xl font-semibold mb-2">
-              Booking History
-            </h3>
-
-            <p className="text-gray-500">
-              View all your previous and upcoming bookings.
-            </p>
           </div>
 
         </div>
@@ -127,23 +169,29 @@ function UserHome() {
       </div>
 
 
-      {/* USER INFO CARDS */}
+      {/* USER INFO */}
 
-      <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-6 mb-12">
+      <div className="max-w-7xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-6">
 
         <div className="bg-white p-6 rounded-xl shadow">
+
           <p className="text-sm text-gray-500">Email</p>
           <p className="text-lg font-semibold">{user.email}</p>
+
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow">
+
           <p className="text-sm text-gray-500">Role</p>
           <p className="text-lg font-semibold">End User</p>
+
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow">
+
           <p className="text-sm text-gray-500">Account Status</p>
           <p className="text-lg font-semibold text-green-600">Active</p>
+
         </div>
 
       </div>
@@ -153,7 +201,7 @@ function UserHome() {
 
       <div className="max-w-7xl mx-auto px-6 pb-16">
 
-        <div className="bg-white rounded-xl shadow p-8">
+        <div className="bg-white p-8 rounded-xl shadow">
 
           <h2 className="text-2xl font-bold mb-6">
             Last Booking
@@ -161,30 +209,27 @@ function UserHome() {
 
           {loading ? (
 
-            <p className="text-gray-500">Loading booking...</p>
+            <p className="text-gray-500">
+              Loading booking...
+            </p>
 
           ) : lastBooking ? (
 
             <div className="grid md:grid-cols-2 gap-6 text-gray-700">
 
-              <div className="flex items-center gap-3">
-                <MapPin size={18} />
-                <span><strong>Venue:</strong> {lastBooking.venue?.name}</span>
-              </div>
+              <p>
+                <strong>Venue:</strong> {lastBooking.venue?.name}
+              </p>
 
-              <div className="flex items-center gap-3">
-                <Calendar size={18} />
-                <span><strong>Date:</strong> {lastBooking.date}</span>
-              </div>
+              <p>
+                <strong>Date:</strong> {lastBooking.date}
+              </p>
 
-              <div className="flex items-center gap-3">
-                <Clock size={18} />
-                <span>
-                  <strong>Time:</strong> {lastBooking.startTime} - {lastBooking.endTime}
-                </span>
-              </div>
+              <p>
+                <strong>Time:</strong> {lastBooking.startTime} - {lastBooking.endTime}
+              </p>
 
-              <div>
+              <p>
                 <strong>Status:</strong>{" "}
                 <span
                   className={
@@ -197,18 +242,19 @@ function UserHome() {
                 >
                   {lastBooking.status}
                 </span>
-              </div>
+              </p>
 
-              <div className="flex items-center gap-3">
-                <IndianRupee size={18} />
-                <span><strong>Amount:</strong> {lastBooking.amount}</span>
-              </div>
+              <p>
+                <strong>Amount:</strong> ₹ {lastBooking.amount}
+              </p>
 
             </div>
 
           ) : (
 
-            <p className="text-gray-500">No booking history found.</p>
+            <p className="text-gray-500">
+              No booking history found.
+            </p>
 
           )}
 
@@ -217,6 +263,7 @@ function UserHome() {
       </div>
 
     </div>
+
   );
 }
 

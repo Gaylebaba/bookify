@@ -10,7 +10,7 @@ function Loginn() {
   const [form, setForm] = useState({
     email: "",
     password: ""
-  });
+  }); 
 
   const setChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });

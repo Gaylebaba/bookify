@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import stadium from "../../assets/images/stadium.jpg";
+import OwnerNavbar from "../../components/OwnerNavbar";
 
 function Addvenue() {
+
   const nav = useNavigate();
 
   const [venue, setVenue] = useState({
@@ -19,7 +20,9 @@ function Addvenue() {
     setVenue({ ...venue, [e.target.name]: e.target.value });
   };
 
+
   const handle = async (e) => {
+
     e.preventDefault();
 
     if (
@@ -53,6 +56,7 @@ function Addvenue() {
     setLoading(true);
 
     try {
+
       const res = await fetch(
         "http://localhost:5000/api/auth/venue",
         {
@@ -61,13 +65,7 @@ function Addvenue() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            name: venue.name,
-            sports: venue.sports,
-            opentime: venue.opentime,
-            closetime: venue.closetime,
-            price: venue.price,
-          }),
+          body: JSON.stringify(venue),
         }
       );
 
@@ -83,126 +81,200 @@ function Addvenue() {
       nav("/owner/venues");
 
     } catch (error) {
-      console.error(error);
+
       alert("Something went wrong");
+
     }
 
     setLoading(false);
+
   };
 
+
   return (
-    <div
-      className="min-h-screen bg-cover bg-center relative flex items-center justify-center"
-      style={{ backgroundImage: `url(${stadium})` }}
-    >
-      <div className="absolute inset-0 bg-black/60"></div>
 
-      <form
-        onSubmit={handle}
-        className="relative z-10 bg-white/90 backdrop-blur-md w-full max-w-md p-8 rounded-xl shadow-2xl"
-      >
-        <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          Add New Venue
-        </h1>
+    <div className="min-h-screen bg-gray-100">
 
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Venue Name
-        </label>
-        <input
-          type="text"
-          name="name"
-          value={venue.name}
-          onChange={setchange}
-          className="w-full border p-2.5 rounded-lg mb-4"
-        />
+      <OwnerNavbar />
 
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Select Sports Available
-        </label>
 
-        <div className="flex flex-wrap gap-2 mb-4">
+      {/* HERO HEADER */}
 
-          {["Cricket", "Football", "Badminton", "Basketball", "Tennis"].map((sport) => (
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-14">
 
-            <button
-              type="button"
-              key={sport}
-              onClick={() => {
+        <div className="max-w-6xl mx-auto px-6">
 
-                let sportsArray = venue.sports ? venue.sports.split(",") : [];
+          <h1 className="text-4xl font-bold mb-2">
+            Add New Venue
+          </h1>
 
-                if (sportsArray.includes(sport)) {
-                  sportsArray = sportsArray.filter((s) => s !== sport);
-                } else {
-                  sportsArray.push(sport);
-                }
-
-                setVenue({ ...venue, sports: sportsArray.join(",") });
-
-              }}
-              className={`px-3 py-1 rounded-lg border text-sm transition
-      ${venue.sports.split(",").includes(sport)
-                  ? "bg-indigo-600 text-white border-indigo-600"
-                  : "bg-gray-100"
-                }`}
-            >
-              {sport}
-
-            </button>
-
-          ))}
+          <p className="text-indigo-100 text-lg">
+            Register your sports venue and start accepting bookings
+          </p>
 
         </div>
 
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Price Per Hour (₹)
-        </label>
-        <input
-          type="number"
-          name="price"
-          value={venue.price}
-          onChange={setchange}
-          className="w-full border p-2.5 rounded-lg mb-4"
-        />
+      </div>
 
-        <div className="flex gap-4 mb-6">
-          <div className="w-1/2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Open Time
-            </label>
-            <input
-              type="time"
-              name="opentime"
-              value={venue.opentime}
-              onChange={setchange}
-              className="w-full border p-2 rounded-lg"
-            />
-          </div>
 
-          <div className="w-1/2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Close Time
-            </label>
-            <input
-              type="time"
-              name="closetime"
-              value={venue.closetime}
-              onChange={setchange}
-              className="w-full border p-2 rounded-lg"
-            />
-          </div>
-        </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-semibold hover:bg-indigo-700 transition"
+      {/* FORM SECTION */}
+
+      <div className="max-w-3xl mx-auto px-6 py-10">
+
+        <form
+          onSubmit={handle}
+          className="bg-white rounded-xl shadow-lg p-8 space-y-6"
         >
-          {loading ? "Adding..." : "Add Venue"}
-        </button>
-      </form>
+
+
+          {/* NAME */}
+
+          <div>
+
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Venue Name
+            </label>
+
+            <input
+              type="text"
+              name="name"
+              value={venue.name}
+              onChange={setchange}
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+            />
+
+          </div>
+
+
+
+          {/* SPORTS */}
+
+          <div>
+
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Select Sports Available
+            </label>
+
+            <div className="flex flex-wrap gap-2">
+
+              {["Cricket","Football","Badminton","Basketball","Tennis"].map((sport) => (
+
+                <button
+                  type="button"
+                  key={sport}
+                  onClick={() => {
+
+                    let sportsArray = venue.sports ? venue.sports.split(",") : [];
+
+                    if (sportsArray.includes(sport)) {
+                      sportsArray = sportsArray.filter(s => s !== sport);
+                    } else {
+                      sportsArray.push(sport);
+                    }
+
+                    setVenue({ ...venue, sports: sportsArray.join(",") });
+
+                  }}
+                  className={`px-4 py-1 rounded-full text-sm border transition
+                  ${
+                    venue.sports.split(",").includes(sport)
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-gray-100 hover:bg-gray-200"
+                  }`}
+                >
+
+                  {sport}
+
+                </button>
+
+              ))}
+
+            </div>
+
+          </div>
+
+
+
+          {/* PRICE */}
+
+          <div>
+
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Price Per Hour (₹)
+            </label>
+
+            <input
+              type="number"
+              name="price"
+              value={venue.price}
+              onChange={setchange}
+              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+            />
+
+          </div>
+
+
+
+          {/* TIME */}
+
+          <div className="grid grid-cols-2 gap-4">
+
+            <div>
+
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Open Time
+              </label>
+
+              <input
+                type="time"
+                name="opentime"
+                value={venue.opentime}
+                onChange={setchange}
+                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+              />
+
+            </div>
+
+            <div>
+
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                Close Time
+              </label>
+
+              <input
+                type="time"
+                name="closetime"
+                value={venue.closetime}
+                onChange={setchange}
+                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+              />
+
+            </div>
+
+          </div>
+
+
+
+          {/* BUTTON */}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold transition"
+          >
+            {loading ? "Adding Venue..." : "Add Venue"}
+          </button>
+
+
+        </form>
+
+      </div>
+
     </div>
+
   );
+
 }
 
 export default Addvenue;

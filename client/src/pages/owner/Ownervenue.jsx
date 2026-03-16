@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import stadium from "../../assets/images/stadium.jpg";
+import OwnerNavbar from "../../components/OwnerNavbar";
 
 function Ownervenue() {
+
   const nav = useNavigate();
 
   const [venues, setVenues] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+
     const fetchVenues = async () => {
+
       try {
+
         const token = localStorage.getItem("token");
 
         if (!token) {
@@ -27,89 +31,184 @@ function Ownervenue() {
           }
         );
 
-        if (res.status === 401) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("loggeduser");
-          nav("/login");
-          return;
-        }
-
         const data = await res.json();
         setVenues(data);
 
       } catch (error) {
-        console.error("Error fetching venues:", error);
+
+        console.error(error);
+
       } finally {
+
         setLoading(false);
+
       }
+
     };
 
     fetchVenues();
+
   }, [nav]);
 
-  return (
-    <div
-      className="min-h-screen w-full bg-cover bg-center relative"
-      style={{ backgroundImage: `url(${stadium})` }}
-    >
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/70"></div>
 
-      <div className="relative z-10 p-8 text-white">
-        <h1 className="text-3xl font-bold mb-8">My Venues</h1>
+
+  return (
+
+    <div className="min-h-screen bg-gray-50">
+
+      <OwnerNavbar />
+
+
+      {/* PAGE HEADER */}
+
+      <div className="max-w-7xl mx-auto px-6 pt-8">
+
+        <h1 className="text-2xl font-semibold text-gray-800">
+          My Venues
+        </h1>
+
+        <p className="text-gray-500 text-sm mt-1">
+          Manage your sports venues and booking slots
+        </p>
+
+      </div>
+
+
+
+      {/* CONTENT */}
+
+      <div className="max-w-7xl mx-auto px-6 py-8">
 
         {loading ? (
-          <p className="text-gray-200">Loading venues...</p>
+
+          <p className="text-gray-500">
+            Loading venues...
+          </p>
+
         ) : venues.length === 0 ? (
-          <p className="text-gray-200">No venues added yet.</p>
+
+          <div className="bg-white p-8 rounded-xl shadow text-center">
+
+            <p className="text-gray-600 mb-4">
+              No venues added yet
+            </p>
+
+            <button
+              onClick={() => nav("/owner/addv")}
+              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition"
+            >
+              Add Venue
+            </button>
+
+          </div>
+
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <div className="grid md:grid-cols-2 gap-8">
+
             {venues.map((v) => (
+
               <div
                 key={v._id}
-                className="bg-white/90 backdrop-blur-md text-gray-800 p-6 rounded-xl shadow"
+                className="bg-white rounded-xl shadow-sm border p-8 hover:shadow-md transition"
               >
-                <h2 className="text-lg font-semibold">{v.name}</h2>
 
-                <p className="text-sm mt-1">
-                  Sports: {v.sports}
-                </p>
+                {/* TITLE */}
 
-                <p className="text-sm mt-1">
-                  Timing: {v.opentime} - {v.closetime}
-                </p>
+                <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                  {v.name}
+                </h2>
 
-                <p className="text-sm mt-1 font-semibold text-green-600">
-                  ₹ {v.price} / hour
-                </p>
 
-                <p className={`text-sm mt-2 font-semibold ${v.approved ? "text-green-600" : "text-yellow-600"
-                  }`}>
-                  Status: {v.approved ? "Approved" : "Pending Approval"}
-                </p>
 
-                <div className="flex gap-3 mt-4">
+                {/* SPORTS */}
+
+                <div className="flex flex-wrap gap-2 mb-4">
+
+                  {v.sports.split(",").map((sport, i) => (
+
+                    <span
+                      key={i}
+                      className="bg-indigo-50 text-indigo-600 text-xs px-3 py-1 rounded-full"
+                    >
+                      {sport}
+                    </span>
+
+                  ))}
+
+                </div>
+
+
+
+                {/* DETAILS */}
+
+                <div className="space-y-2 text-sm text-gray-600">
+
+                  <p>
+                    ⏰ {v.opentime} - {v.closetime}
+                  </p>
+
+                  <p className="text-green-600 font-medium">
+                    ₹ {v.price} / hour
+                  </p>
+
+                </div>
+
+
+
+                {/* STATUS */}
+
+                <div className="mt-4">
+
+                  <span
+                    className={`text-xs px-3 py-1 rounded-full font-medium
+                    ${
+                      v.approved
+                        ? "bg-green-100 text-green-600"
+                        : "bg-yellow-100 text-yellow-600"
+                    }`}
+                  >
+                    {v.approved ? "Approved" : "Pending Approval"}
+                  </span>
+
+                </div>
+
+
+
+                {/* BUTTONS */}
+
+                <div className="flex gap-4 mt-6">
+
                   <button
                     onClick={() => nav(`/owner/edit/${v._id}`)}
-                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
+                    className="flex-1 border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition"
                   >
                     Edit
                   </button>
 
                   <button
                     onClick={() => nav(`/owner/set-slot/${v._id}`)}
-                    className="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition"
+                    className="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
                   >
                     Set Slots
                   </button>
+
                 </div>
+
               </div>
+
             ))}
+
           </div>
+
         )}
+
       </div>
+
     </div>
+
   );
+
 }
 
 export default Ownervenue;

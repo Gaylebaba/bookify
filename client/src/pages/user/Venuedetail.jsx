@@ -16,13 +16,13 @@ function Venuedetail() {
     const loggeduser = JSON.parse(localStorage.getItem("loggeduser"));
     const token = localStorage.getItem("token");
 
-    // 🔐 Role Protection
     if (!loggeduser || !token || loggeduser.role !== "enduser") {
       nav("/login");
       return;
     }
 
     const fetchVenues = async () => {
+
       try {
 
         const res = await fetch(
@@ -43,47 +43,109 @@ function Venuedetail() {
       }
 
       setLoading(false);
+
     };
 
     fetchVenues();
 
   }, [nav]);
 
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("loggeduser");
+    nav("/login");
+  };
+
+
   return (
-    <div className="relative min-h-screen">
 
-      {/* Background */}
-      <div
-        className="fixed inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${stadium})` }}
-      />
+    <div className="min-h-screen bg-gray-100">
 
-      {/* Overlay */}
-      <div className="fixed inset-0 backdrop-blur-xl bg-white/5"></div>
+      {/* NAVBAR */}
 
-      {/* Content */}
-      <div className="relative z-10 p-10 text-white">
+      <div className="bg-white shadow-sm">
 
-        <h1 className="text-4xl font-bold mb-2">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+          <h1
+            onClick={() => nav("/home")}
+            className="text-2xl font-bold text-indigo-600 cursor-pointer"
+          >
+            Bookify
+          </h1>
+
+          <div className="flex items-center gap-6">
+
+            <button
+              onClick={() => nav("/home")}
+              className="text-gray-700 hover:text-indigo-600 font-medium"
+            >
+              Home
+            </button>
+
+            <button
+              onClick={() => nav("/venues")}
+              className="text-gray-700 hover:text-indigo-600 font-medium"
+            >
+              Browse Venues
+            </button>
+
+            <button
+              onClick={() => nav("/user/history")}
+              className="text-gray-700 hover:text-indigo-600 font-medium"
+            >
+              My Bookings
+            </button>
+
+            <button
+              onClick={logout}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+            >
+              Logout
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      {/* HEADER */}
+
+      <div className="max-w-7xl mx-auto px-6 pt-10 pb-6">
+
+        <h1 className="text-4xl font-bold text-gray-800 mb-2">
           Browse Venues
         </h1>
 
-        <p className="text-gray-300 mb-10">
-          Choose a venue and slot
+        <p className="text-gray-600">
+          Choose a venue and select your preferred sport & slot
         </p>
 
+      </div>
+
+
+      {/* VENUE GRID */}
+
+      <div className="max-w-7xl mx-auto px-6 pb-16">
+
         {loading ? (
-          <p className="text-gray-300">Loading venues...</p>
+
+          <p className="text-gray-600">Loading venues...</p>
 
         ) : error ? (
-          <p className="text-red-400">{error}</p>
+
+          <p className="text-red-500">{error}</p>
 
         ) : venues.length === 0 ? (
-          <p className="text-gray-300">No approved venues available</p>
+
+          <p className="text-gray-600">No approved venues available</p>
 
         ) : (
 
-          <div className="grid gap-6 max-w-4xl">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
 
             {venues.map((v) => {
 
@@ -93,25 +155,41 @@ function Venuedetail() {
 
                 <div
                   key={v._id}
-                  className="bg-black/40 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/10"
+                  className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden flex flex-col"
                 >
 
-                  <p>
-                    <strong>Venue:</strong> {v.name}
-                  </p>
+                  {/* IMAGE */}
 
-                  <p>
-                    <strong>Sports:</strong> {v.sports}
-                  </p>
+                  <div
+                    className="h-44 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${stadium})` }}
+                  />
 
-                  {/* Sport Selector */}
-                  <div className="mt-3">
 
-                    <p className="text-sm mb-1">
-                      <strong>Select Sport:</strong>
+                  {/* CONTENT */}
+
+                  <div className="p-6 flex flex-col flex-1">
+
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                      {v.name}
+                    </h2>
+
+                    <p className="text-gray-600 text-sm mb-2">
+                      <strong>Timing:</strong> {v.opentime} - {v.closetime}
                     </p>
 
-                    <div className="flex gap-2 flex-wrap">
+                    <p className="text-green-600 font-semibold mb-4 text-lg">
+                      ₹ {v.price} / hour
+                    </p>
+
+
+                    {/* SPORT SELECTOR */}
+
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Select Sport
+                    </p>
+
+                    <div className="flex flex-wrap gap-2 mb-6">
 
                       {sportsList.map((s, i) => (
 
@@ -123,10 +201,10 @@ function Venuedetail() {
                               [v._id]: s
                             })
                           }
-                          className={`px-3 py-1 rounded-lg text-sm border transition
+                          className={`px-3 py-1 text-sm rounded-full border transition
                           ${selectedSport[v._id] === s
-                              ? "bg-indigo-600 border-indigo-600"
-                              : "bg-white/10 border-white/20"
+                              ? "bg-indigo-600 text-white border-indigo-600"
+                              : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
                             }`}
                         >
                           {s}
@@ -136,40 +214,35 @@ function Venuedetail() {
 
                     </div>
 
-                  </div>
 
-                  <p className="mt-3">
-                    <strong>Time:</strong> {v.opentime} - {v.closetime}
-                  </p>
+                    {/* BUTTONS */}
 
-                  <p className="text-green-400 font-semibold">
-                    ₹ {v.price} / hour
-                  </p>
+                    <div className="flex gap-3 mt-auto">
 
-                  <div className="mt-4 flex gap-4">
+                      <button
+                        onClick={() => {
 
-                    <button
-                      onClick={() => {
+                          if (!selectedSport[v._id]) {
+                            alert("Please select sport first");
+                            return;
+                          }
 
-                        if (!selectedSport[v._id]) {
-                          alert("Please select sport first");
-                          return;
-                        }
+                          nav(`/selecttime/${v._id}?sport=${selectedSport[v._id]}`);
 
-                        nav(`/selecttime/${v._id}?sport=${selectedSport[v._id]}`);
+                        }}
+                        className="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition font-medium"
+                      >
+                        Select Time
+                      </button>
 
-                      }}
-                      className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg"
-                    >
-                      Select Time
-                    </button>
+                      <button
+                        onClick={() => nav(`/venues/${v._id}`)}
+                        className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition"
+                      >
+                        About
+                      </button>
 
-                    <button
-                      onClick={() => nav(`/venues/${v._id}`)}
-                      className="bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg"
-                    >
-                      About Venue
-                    </button>
+                    </div>
 
                   </div>
 
@@ -186,7 +259,9 @@ function Venuedetail() {
       </div>
 
     </div>
+
   );
+
 }
 
 export default Venuedetail;

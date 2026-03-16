@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import stadium from "../../assets/images/stadium.jpg";
 
 function Singlevenue() {
 
@@ -14,19 +13,19 @@ function Singlevenue() {
   useEffect(() => {
 
     const fetchData = async () => {
+
       try {
 
-        // fetch venue
         const venueRes = await fetch(
           `http://localhost:5000/api/auth/venues/${id}`
         );
+
         const venueData = await venueRes.json();
 
         if (venueRes.ok) {
           setVenue(venueData);
         }
 
-        // fetch reviews
         const reviewRes = await fetch(
           `http://localhost:5000/api/auth/venues/${id}/reviews`
         );
@@ -42,11 +41,20 @@ function Singlevenue() {
       }
 
       setLoading(false);
+
     };
 
     fetchData();
 
   }, [id]);
+
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("loggeduser");
+    nav("/login");
+  };
+
 
   const averageRating =
     reviews.length > 0
@@ -56,95 +64,136 @@ function Singlevenue() {
         ).toFixed(1)
       : 0;
 
+
   if (loading) {
-    return (
-      <div className="text-white p-10">
-        Loading...
-      </div>
-    );
+    return <div className="p-10">Loading...</div>;
   }
 
   if (!venue) {
-    return (
-      <div className="text-white p-10">
-        Venue not found
-      </div>
-    );
+    return <div className="p-10">Venue not found</div>;
   }
 
+
   return (
-    <div className="relative min-h-screen">
 
-      {/* Background */}
-      <div
-        className="fixed inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${stadium})` }}
-      />
+    <div className="min-h-screen bg-gray-100">
 
-      {/* Blur overlay */}
-      <div className="fixed inset-0 backdrop-blur-xl bg-white/5"></div>
+      {/* NAVBAR */}
 
-      {/* Content */}
-      <div className="relative z-10 p-10 text-white max-w-4xl mx-auto">
+      <div className="bg-white shadow-sm">
 
-        {/* Venue Info */}
-        <div className="bg-black/40 backdrop-blur-xl p-8 rounded-2xl shadow-xl border border-white/10 mb-10">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-          <button
-            onClick={() => nav("/venues")}
-            className="mb-4 text-gray-300 hover:text-white"
+          <h1
+            onClick={() => nav("/home")}
+            className="text-2xl font-bold text-indigo-600 cursor-pointer"
           >
-            ← Back
-          </button>
+            Bookify
+          </h1>
 
-          <h1 className="text-4xl font-bold mb-4">
+          <div className="flex items-center gap-6">
+
+            <button
+              onClick={() => nav("/home")}
+              className="text-gray-700 hover:text-indigo-600 font-medium"
+            >
+              Home
+            </button>
+
+            <button
+              onClick={() => nav("/venues")}
+              className="text-gray-700 hover:text-indigo-600 font-medium"
+            >
+              Browse Venues
+            </button>
+
+            <button
+              onClick={() => nav("/user/history")}
+              className="text-gray-700 hover:text-indigo-600 font-medium"
+            >
+              My Bookings
+            </button>
+
+            <button
+              onClick={logout}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+            >
+              Logout
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      {/* PAGE CONTENT */}
+
+      <div className="max-w-7xl mx-auto px-6 py-10">
+
+        <button
+          onClick={() => nav("/venues")}
+          className="text-gray-600 hover:text-indigo-600 mb-6"
+        >
+          ← Back
+        </button>
+
+
+        {/* VENUE CARD */}
+
+        <div className="bg-white rounded-xl shadow p-8 mb-10">
+
+          <h1 className="text-3xl font-bold text-gray-800 mb-6">
             {venue.name}
           </h1>
 
-          <div className="grid grid-cols-2 gap-4 text-gray-200">
+          <div className="grid md:grid-cols-2 gap-6 text-gray-700">
 
             <p>
-              <span className="text-gray-400">Sports:</span>{" "}
-              {venue.sports}
+              <span className="font-semibold">Sports:</span> {venue.sports}
             </p>
 
             <p>
-              <span className="text-gray-400">Timing:</span>{" "}
+              <span className="font-semibold">Timing:</span>{" "}
               {venue.opentime} - {venue.closetime}
             </p>
 
-            <p className="text-green-400 font-semibold text-lg">
+            <p className="text-green-600 font-semibold text-lg">
               ₹ {venue.price} / hour
             </p>
 
-            <p className="text-yellow-400 font-semibold">
+            <p className="text-yellow-500 font-semibold">
               ⭐ {averageRating} / 5 ({reviews.length} reviews)
             </p>
 
           </div>
 
-          {/* Facilities */}
-          <div className="mt-6">
 
-            <h3 className="text-lg font-semibold mb-2">
+          {/* FACILITIES */}
+
+          <div className="mt-8">
+
+            <h3 className="font-semibold text-gray-800 mb-3">
               Facilities
             </h3>
 
-            <div className="flex flex-wrap gap-3 text-sm">
+            <div className="flex flex-wrap gap-3">
 
-              <span className="bg-white/10 px-3 py-1 rounded-lg">
+              <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">
                 Parking
               </span>
 
-              <span className="bg-white/10 px-3 py-1 rounded-lg">
+              <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">
                 Flood Lights
               </span>
 
-              <span className="bg-white/10 px-3 py-1 rounded-lg">
+              <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">
                 Drinking Water
               </span>
 
-              <span className="bg-white/10 px-3 py-1 rounded-lg">
+              <span className="bg-gray-100 px-3 py-1 rounded-full text-sm">
                 Washroom
               </span>
 
@@ -152,48 +201,53 @@ function Singlevenue() {
 
           </div>
 
+
           <button
             onClick={() => nav(`/selecttime/${id}`)}
-            className="mt-8 bg-indigo-600 hover:bg-indigo-500 px-6 py-3 rounded-xl font-semibold transition"
+            className="mt-8 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold"
           >
             Book Now
           </button>
 
         </div>
 
-        {/* Reviews */}
-        <h2 className="text-2xl font-bold mb-4">
+
+
+        {/* REVIEWS */}
+
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
           Reviews
         </h2>
 
+
         {reviews.length === 0 ? (
-          <p className="text-gray-300">
-            No reviews yet.
-          </p>
+
+          <p className="text-gray-600">No reviews yet.</p>
+
         ) : (
 
-          <div className="space-y-5">
+          <div className="space-y-6">
 
             {reviews.map((r) => (
 
               <div
                 key={r._id}
-                className="bg-black/40 backdrop-blur-xl p-6 rounded-xl border border-white/10"
+                className="bg-white shadow rounded-xl p-6"
               >
 
-                <div className="flex items-center justify-between">
+                <div className="flex justify-between items-center">
 
-                  <p className="text-yellow-400 text-lg">
+                  <p className="text-yellow-500 text-lg">
                     {"⭐".repeat(r.rating)}
                   </p>
 
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-gray-500">
                     {r.user?.name}
                   </p>
 
                 </div>
 
-                <p className="mt-3 text-gray-200">
+                <p className="mt-3 text-gray-700">
                   {r.comment}
                 </p>
 
@@ -208,7 +262,9 @@ function Singlevenue() {
       </div>
 
     </div>
+
   );
+
 }
 
 export default Singlevenue;
